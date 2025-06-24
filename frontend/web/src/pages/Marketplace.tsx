@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useCart, Product } from '@/contexts/CartContext';
+import { useCart } from '@/contexts/CartContext';
+import { Producto } from '@/contexts/ProductContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { Link } from 'react-router-dom';
 import Cart from '@/components/Cart';
@@ -21,9 +22,11 @@ const Marketplace = () => {
   const { toggleFavorite, isFavorite, favorites } = useFavorites();
 
   // Datos de ejemplo de productos
-  const products: Product[] = [
+  const products: Producto[] = [
     {
       id: 1,
+      descripcion: 'Set completo de herramientas con 46 piezas incluyendo llaves, tubos y accesorios en un práctico estuche',
+      stock: 150,
       name: 'Set Caja Herramientas Juego Llave Tubo Kit 46 Piezas Estuche',
       price: 13519,
       originalPrice: 22200,
@@ -38,6 +41,8 @@ const Marketplace = () => {
     },
     {
       id: 2,
+      descripcion: 'Parlante Bluetooth portátil con luces LED, potencia de 30W RMS, conectividad inalámbrica y diseño moderno',
+      stock: 75,
       name: 'Parlante Bluetooth 30w Rms Jd E300 Portátil Luces Led Inalámbrico',
       price: 74787,
       originalPrice: 149999,
@@ -51,6 +56,8 @@ const Marketplace = () => {
     },
     {
       id: 3,
+      descripcion: 'Auriculares inalámbricos con cancelación de ruido, batería de larga duración y diseño ergonómico',
+      stock: 200,
       name: 'Auriculares Inalámbricos Xiaomi Redmi Buds 6 Play Black',
       price: 21299,
       originalPrice: 29980,
@@ -65,6 +72,8 @@ const Marketplace = () => {
     },
     {
       id: 4,
+      descripcion: 'Sistema de alarma para auto con 2 controles remotos y sensor de impacto incluido',
+      stock: 100,
       name: 'Alarma Auto X28 Z10 Rs + 2 Controles + Sensor Impacto',
       price: 89990,
       originalPrice: 129990,
@@ -78,6 +87,8 @@ const Marketplace = () => {
     },
     {
       id: 5,
+      descripcion: 'Kit de láminas polarizadas 3M Crystalline con 70% de transparencia para ventanas laterales de vehículos',
+      stock: 50,
       name: 'Kit Polarizado Láminas 3M Crystalline 70% Ventanas Laterales',
       price: 45000,
       image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=300&fit=crop',
@@ -89,6 +100,8 @@ const Marketplace = () => {
     },
     {
       id: 6,
+      descripcion: 'Kit de luces LED Xenón de alta potencia con 12000 lúmenes, compatible con múltiples modelos',
+      stock: 120,
       name: 'Luces LED Kit Xenón H4 H7 H11 9005 9006 Philips 12000LM',
       price: 32500,
       originalPrice: 48000,
@@ -122,7 +135,7 @@ const Marketplace = () => {
     if (searchTerm) {
       filtered = filtered.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchTerm.toLowerCase())
+        (product.brand && product.brand.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -131,7 +144,7 @@ const Marketplace = () => {
       filtered = filtered.filter(product => product.category === selectedCategory);
     }
 
-    // Filtrar por rango de precio
+    // Filtrar por rango de price
     if (priceRange !== 'all') {
       filtered = filtered.filter(product => {
         if (priceRange === 'low') return product.price < 10000;
@@ -177,7 +190,7 @@ const Marketplace = () => {
               </CardHeader>
               <CardContent>
                 <Input
-                  placeholder="Buscar por nombre o marca..."
+                  placeholder="Buscar por name o marca..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full"
@@ -225,9 +238,9 @@ const Marketplace = () => {
                   </div>
                 </div>
 
-                {/* Precio */}
+                {/* price */}
                 <div>
-                  <h4 className="font-medium mb-2">Rango de precio</h4>
+                  <h4 className="font-medium mb-2">Rango de price</h4>
                   <div className="space-y-2">
                     <Button
                       variant={priceRange === 'all' ? "default" : "ghost"}
@@ -235,7 +248,7 @@ const Marketplace = () => {
                       onClick={() => setPriceRange('all')}
                       className="w-full justify-start"
                     >
-                      Todos los precios
+                      Todos los prices
                     </Button>
                     <Button
                       variant={priceRange === 'low' ? "default" : "ghost"}
@@ -291,8 +304,8 @@ const Marketplace = () => {
                   onChange={(e) => setSortBy(e.target.value as any)}
                   className="border border-slate-300 rounded-md px-3 py-2 text-sm"
                 >
-                  <option value="name">Ordenar por nombre</option>
-                  <option value="price">Ordenar por precio</option>
+                  <option value="name">Ordenar por name</option>
+                  <option value="price">Ordenar por price</option>
                   <option value="rating">Ordenar por valoración</option>
                 </select>
               </div>

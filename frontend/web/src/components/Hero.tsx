@@ -11,7 +11,7 @@ const Hero = () => {
             <div className="space-y-4">
               <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
                 <span className="bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
-                  Keymax Prot
+                  KeymaxProt
                 </span>
                 <br />
                 Tu especialista en

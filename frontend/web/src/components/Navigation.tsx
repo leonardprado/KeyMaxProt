@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Menu, X, Calendar, User, ShoppingCart, Store, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -46,9 +45,7 @@ const Navigation = () => {
             {/* Desktop Menu */}
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-8">
-                <a href="/" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
-                  Inicio
-                </a>
+               
                 <a href="/marketplace" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
                   Marketplace
                 </a>
@@ -60,6 +57,9 @@ const Navigation = () => {
                 </a>
                 <a href="#contacto" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
                   Contacto
+                </a>
+                 <a href="/blog" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
+                  Blog
                 </a>
               </div>
             </div>

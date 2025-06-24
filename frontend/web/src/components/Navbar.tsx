@@ -1,12 +1,12 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
-import { useCartContext } from "../contexts/CartContext";
+import { useCart } from "../contexts/CartContext";
 
 const Navbar = () => {
   const location = useLocation();
-  const { items } = useCartContext();
-  const totalItems = items.reduce((acc, item) => acc + item.cantidad, 0);
+  const { items } = useCart();
+  const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
 
   const navLinks = [
     { to: "/productos", label: "Marketplace" },

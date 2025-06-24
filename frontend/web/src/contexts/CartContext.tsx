@@ -1,28 +1,17 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { Producto } from './ProductContext';
 
-export interface Product {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
-  category: string;
-  brand: string;
-  rating: number;
-  reviews: number;
-  discount?: number;
-  isBestSeller?: boolean;
-  freeShipping?: boolean;
-}
-
-export interface CartItem extends Product {
+export interface CartItem extends Producto {
   quantity: number;
 }
 
+export interface Product extends Producto {}
+
+
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product) => void;
+  addToCart: (product: Producto) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
@@ -43,7 +32,7 @@ export const useCart = () => {
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Producto) => {
     setItems(prev => {
       const existingItem = prev.find(item => item.id === product.id);
       if (existingItem) {
@@ -78,7 +67,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const totalPrice = items.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
 
   return (
     <CartContext.Provider value={{

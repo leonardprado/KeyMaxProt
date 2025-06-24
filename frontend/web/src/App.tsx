@@ -16,6 +16,7 @@ import Appointments from "./pages/Appointments";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProductDetail from "./pages/ProductDetail";
 import NotFound from "./pages/NotFound";
+import Blog from "./pages/Blog";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +30,7 @@ const App = () => (
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
-                <BrowserRouter>
+                <BrowserRouter future={{ v7_relativeSplatPath: true }}>
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/marketplace" element={<Marketplace />} />
@@ -37,6 +38,7 @@ const App = () => (
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/appointments" element={<Appointments />} />
                     <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/blog" element={<Blog />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

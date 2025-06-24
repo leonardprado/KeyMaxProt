@@ -1,4 +1,3 @@
-import React from "react";
 import { useProductContext } from "../contexts/ProductContext";
 import { Link } from "react-router-dom";
 

@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Product } from '@/contexts/CartContext';
+import { Producto as Product } from './ProductContext';
 
 interface FavoritesContextType {
   favorites: Product[];

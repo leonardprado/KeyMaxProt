@@ -1,209 +1,162 @@
 const Tutorial = require('../models/Tutorial');
 const User = require('../models/User');
+const asyncHandler = require('../middleware/asyncHandler');
 
 // Crear nuevo tutorial
-exports.crearTutorial = async (req, res) => {
-  try {
-    // Solo admins y técnicos pueden crear tutoriales
-    if (!['admin', 'tecnico'].includes(req.user.rol)) {
-      return res.status(403).json({
-        success: false,
-        message: 'No autorizado para crear tutoriales'
-      });
-    }
-
-    const tutorial = await Tutorial.create({
-      ...req.body,
-      autor: req.user.id
-    });
-
-    res.status(201).json({
-      success: true,
-      tutorial
-    });
-  } catch (error) {
-    res.status(500).json({
+exports.crearTutorial = asyncHandler(async (req, res, next) => {
+  // Solo admins y técnicos pueden crear tutoriales
+  if (!['admin', 'tecnico'].includes(req.user.rol)) {
+    return res.status(403).json({
       success: false,
-      message: 'Error al crear tutorial',
-      error: error.message
+      message: 'No autorizado para crear tutoriales'
     });
   }
-};
+
+  const tutorial = await Tutorial.create({
+    ...req.body,
+    autor: req.user.id
+  });
+
+  res.status(201).json({
+    success: true,
+    tutorial
+  });
+});
 
 // Obtener todos los tutoriales
-exports.getTutoriales = async (req, res) => {
-  try {
-    const { categoria, nivel, busqueda } = req.query;
-    let query = {};
+exports.getTutoriales = asyncHandler(async (req, res, next) => {
+  const { categoria, nivel, busqueda } = req.query;
+  let query = {};
 
-    if (categoria) query.categoria = categoria;
-    if (nivel) query.nivel = nivel;
-    if (busqueda) {
-      query.$or = [
-        { titulo: { $regex: busqueda, $options: 'i' } },
-        { descripcion: { $regex: busqueda, $options: 'i' } },
-        { etiquetas: { $regex: busqueda, $options: 'i' } }
-      ];
-    }
-
-    const tutoriales = await Tutorial.find(query)
-      .populate('autor', 'nombre apellido')
-      .sort({ fechaPublicacion: -1 });
-
-    res.status(200).json({
-      success: true,
-      count: tutoriales.length,
-      tutoriales
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error al obtener tutoriales',
-      error: error.message
-    });
+  if (categoria) query.categoria = categoria;
+  if (nivel) query.nivel = nivel;
+  if (busqueda) {
+    query.$or = [
+      { titulo: { $regex: busqueda, $options: 'i' } },
+      { descripcion: { $regex: busqueda, $options: 'i' } },
+      { etiquetas: { $regex: busqueda, $options: 'i' } }
+    ];
   }
-};
+
+  const tutoriales = await Tutorial.find(query)
+    .populate('autor', 'nombre apellido')
+    .sort({ fechaPublicacion: -1 });
+
+  res.status(200).json({
+    success: true,
+    count: tutoriales.length,
+    tutoriales
+  });
+});
 
 // Obtener un tutorial específico
-exports.getTutorial = async (req, res) => {
-  try {
-    const tutorial = await Tutorial.findById(req.params.id)
-      .populate('autor', 'nombre apellido')
-      .populate('comentarios.usuario', 'nombre apellido');
+exports.getTutorial = asyncHandler(async (req, res, next) => {
+  const tutorial = await Tutorial.findById(req.params.id)
+    .populate('autor', 'nombre apellido')
+    .populate('comentarios.usuario', 'nombre apellido');
 
-    if (!tutorial) {
-      return res.status(404).json({
-        success: false,
-        message: 'Tutorial no encontrado'
-      });
-    }
-
-    // Incrementar vistas
-    await tutorial.incrementarVistas();
-
-    res.status(200).json({
-      success: true,
-      tutorial
-    });
-  } catch (error) {
-    res.status(500).json({
+  if (!tutorial) {
+    return res.status(404).json({
       success: false,
-      message: 'Error al obtener tutorial',
-      error: error.message
+      message: 'Tutorial no encontrado'
     });
   }
-};
+
+  // Incrementar vistas
+  await tutorial.incrementarVistas();
+
+  res.status(200).json({
+    success: true,
+    tutorial
+  });
+});
 
 // Actualizar tutorial
-exports.actualizarTutorial = async (req, res) => {
-  try {
-    let tutorial = await Tutorial.findById(req.params.id);
+exports.actualizarTutorial = asyncHandler(async (req, res, next) => {
+  let tutorial = await Tutorial.findById(req.params.id);
 
-    if (!tutorial) {
-      return res.status(404).json({
-        success: false,
-        message: 'Tutorial no encontrado'
-      });
-    }
-
-    // Verificar autorización
-    if (tutorial.autor.toString() !== req.user.id && req.user.rol !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'No autorizado para actualizar este tutorial'
-      });
-    }
-
-    tutorial = await Tutorial.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true
-      }
-    );
-
-    res.status(200).json({
-      success: true,
-      tutorial
-    });
-  } catch (error) {
-    res.status(500).json({
+  if (!tutorial) {
+    return res.status(404).json({
       success: false,
-      message: 'Error al actualizar tutorial',
-      error: error.message
+      message: 'Tutorial no encontrado'
     });
   }
-};
+
+  // Verificar autorización
+  if (tutorial.autor.toString() !== req.user.id && req.user.rol !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'No autorizado para actualizar este tutorial'
+    });
+  }
+
+  tutorial = await Tutorial.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    {
+      new: true,
+      runValidators: true
+    }
+  );
+
+  res.status(200).json({
+    success: true,
+    tutorial
+  });
+});
 
 // Eliminar tutorial
-exports.eliminarTutorial = async (req, res) => {
-  try {
-    const tutorial = await Tutorial.findById(req.params.id);
+exports.eliminarTutorial = asyncHandler(async (req, res, next) => {
+  const tutorial = await Tutorial.findById(req.params.id);
 
-    if (!tutorial) {
-      return res.status(404).json({
-        success: false,
-        message: 'Tutorial no encontrado'
-      });
-    }
-
-    // Verificar autorización
-    if (tutorial.autor.toString() !== req.user.id && req.user.rol !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'No autorizado para eliminar este tutorial'
-      });
-    }
-
-    await tutorial.remove();
-
-    res.status(200).json({
-      success: true,
-      message: 'Tutorial eliminado correctamente'
-    });
-  } catch (error) {
-    res.status(500).json({
+  if (!tutorial) {
+    return res.status(404).json({
       success: false,
-      message: 'Error al eliminar tutorial',
-      error: error.message
+      message: 'Tutorial no encontrado'
     });
   }
-};
+
+  // Verificar autorización
+  if (tutorial.autor.toString() !== req.user.id && req.user.rol !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'No autorizado para eliminar este tutorial'
+    });
+  }
+
+  await tutorial.remove();
+
+  res.status(200).json({
+    success: true,
+    message: 'Tutorial eliminado correctamente'
+  });
+});
 
 // Añadir comentario
-exports.agregarComentario = async (req, res) => {
-  try {
-    const tutorial = await Tutorial.findById(req.params.id);
+exports.agregarComentario = asyncHandler(async (req, res, next) => {
+  const tutorial = await Tutorial.findById(req.params.id);
 
-    if (!tutorial) {
-      return res.status(404).json({
-        success: false,
-        message: 'Tutorial no encontrado'
-      });
-    }
-
-    const nuevoComentario = {
-      usuario: req.user.id,
-      texto: req.body.texto,
-      calificacion: req.body.calificacion
-    };
-
-    tutorial.comentarios.push(nuevoComentario);
-    await tutorial.save();
-
-    res.status(200).json({
-      success: true,
-      tutorial
-    });
-  } catch (error) {
-    res.status(500).json({
+  if (!tutorial) {
+    return res.status(404).json({
       success: false,
-      message: 'Error al agregar comentario',
-      error: error.message
+      message: 'Tutorial no encontrado'
     });
   }
-};
+
+  const nuevoComentario = {
+    usuario: req.user.id,
+    texto: req.body.texto,
+    calificacion: req.body.calificacion
+  };
+
+  tutorial.comentarios.push(nuevoComentario);
+  await tutorial.save();
+
+  res.status(200).json({
+    success: true,
+    tutorial
+  });
+});
 
 // Marcar tutorial como completado
 exports.marcarCompletado = async (req, res) => {

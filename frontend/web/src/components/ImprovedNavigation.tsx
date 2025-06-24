@@ -55,11 +55,12 @@ const ImprovedNavigation = () => {
             {/* Desktop Menu */}
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-8">
-                <Link to="/" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
-                  Inicio
-                </Link>
+               
                 <Link to="/marketplace" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
                   Marketplace
+                </Link>
+                 <Link to="/blog" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
+                  Blog
                 </Link>
                 <button 
                   onClick={() => scrollToSection('servicios')}
@@ -79,6 +80,7 @@ const ImprovedNavigation = () => {
                 >
                   Contacto
                 </button>
+                
               </div>
             </div>
 
