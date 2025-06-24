@@ -1,36 +1,36 @@
 const express = require("express");
 const cors = require("cors");
 const mercadopago = require("mercadopago");
+const connectDB = require('./config/database');
+const orderRoutes = require('./routes/orderRoutes');
+require('dotenv').config();
 
+// Configurar MercadoPago
 mercadopago.configure({
-  access_token: "TU_ACCESS_TOKEN_MERCADOPAGO", // Reemplaza por tu token real
+  access_token: process.env.MERCADOPAGO_ACCESS_TOKEN
 });
+
+// Conectar a MongoDB
+connectDB();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post("/api/checkout", async (req, res) => {
-  try {
-    const { items } = req.body;
-    const preference = {
-      items,
-      back_urls: {
-        success: "http://localhost:5173/carrito?status=success",
-        failure: "http://localhost:5173/carrito?status=failure",
-        pending: "http://localhost:5173/carrito?status=pending",
-      },
-      auto_return: "approved",
-    };
-
-    const response = await mercadopago.preferences.create(preference);
-    res.json({ init_point: response.body.init_point });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error al crear preferencia" });
-  }
+app.get("/", (req, res) => {
+  res.send("API de KeyMaxProt funcionando correctamente");
 });
 
-app.listen(3001, () => {
-  console.log("Servidor backend escuchando en http://localhost:3001");
+// Rutas base
+app.get("/", (req, res) => {
+  res.send("API de KeyMaxProt funcionando correctamente");
+});
+
+// Rutas de órdenes y pagos
+app.use('/api/orders', orderRoutes);
+
+const PORT = process.env.PORT || 3001;
+
+app.listen(PORT, () => {
+  console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
 });
