@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
-import Navigation from '@/components/Navigation';
+import { Link } from 'react-router-dom';
+import ImprovedNavigation from '@/components/ImprovedNavigation';
 
 const Profile = () => {
   const { user, updateProfile, isLoading } = useAuth();
@@ -69,9 +70,14 @@ const Profile = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        <Navigation />
+        <ImprovedNavigation />
         <div className="flex items-center justify-center min-h-screen">
-          <p className="text-lg text-slate-600">Debes iniciar sesión para ver tu perfil</p>
+          <div className="text-center">
+            <p className="text-lg text-slate-600 mb-4">Debes iniciar sesión para ver tu perfil</p>
+            <Link to="/">
+              <Button>Volver al inicio</Button>
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -79,7 +85,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <Navigation />
+      <ImprovedNavigation />
       
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
@@ -227,23 +233,20 @@ const Profile = () => {
                         {formatPrice(totalPrice)}
                       </span>
                     </div>
-                    <Button 
-                      className="w-full"
-                      onClick={() => window.location.href = '/marketplace'}
-                    >
-                      Ver carrito completo
-                    </Button>
+                    <Link to="/marketplace">
+                      <Button className="w-full">
+                        Ver carrito completo
+                      </Button>
+                    </Link>
                   </div>
                 ) : (
                   <div className="text-center py-4">
                     <p className="text-slate-500 text-sm mb-3">Tu carrito está vacío</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.location.href = '/marketplace'}
-                    >
-                      Explorar productos
-                    </Button>
+                    <Link to="/marketplace">
+                      <Button variant="outline" size="sm">
+                        Explorar productos
+                      </Button>
+                    </Link>
                   </div>
                 )}
               </CardContent>
@@ -255,10 +258,12 @@ const Profile = () => {
                 <CardTitle>Acciones Rápidas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full" variant="outline">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Agendar nueva cita
-                </Button>
+                <Link to="/appointments">
+                  <Button className="w-full" variant="outline">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Agendar nueva cita
+                  </Button>
+                </Link>
                 <Button className="w-full" variant="outline">
                   <Mail className="w-4 h-4 mr-2" />
                   Contactar soporte

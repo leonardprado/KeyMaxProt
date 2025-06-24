@@ -1,13 +1,14 @@
 
 import { useState } from 'react';
 import { Menu, X, Calendar, User, ShoppingCart, Store, LogOut, Settings } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from './AuthModal';
 import NotificationCenter from './NotificationCenter';
 
-const Navigation = () => {
+const ImprovedNavigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -15,6 +16,7 @@ const Navigation = () => {
   
   const { totalItems } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
+  const location = useLocation();
 
   const handleAuthClick = (mode: 'login' | 'register') => {
     setAuthMode(mode);
@@ -26,8 +28,15 @@ const Navigation = () => {
     setIsMenuOpen(false);
   };
 
-  const handleAppointmentClick = () => {
-    window.location.href = '/appointments';
+  const scrollToSection = (sectionId: string) => {
+    if (location.pathname !== '/') {
+      window.location.href = `/#${sectionId}`;
+    } else {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
     setIsMenuOpen(false);
   };
 
@@ -38,29 +47,38 @@ const Navigation = () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
-              <a href="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+              <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                 Keymax Prot
-              </a>
+              </Link>
             </div>
 
             {/* Desktop Menu */}
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-8">
-                <a href="/" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
+                <Link to="/" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
                   Inicio
-                </a>
-                <a href="/marketplace" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
+                </Link>
+                <Link to="/marketplace" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
                   Marketplace
-                </a>
-                <a href="#servicios" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
+                </Link>
+                <button 
+                  onClick={() => scrollToSection('servicios')}
+                  className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
+                >
                   Servicios
-                </a>
-                <a href="#nosotros" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
+                </button>
+                <button 
+                  onClick={() => scrollToSection('nosotros')}
+                  className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
+                >
                   Nosotros
-                </a>
-                <a href="#contacto" className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
+                </button>
+                <button 
+                  onClick={() => scrollToSection('contacto')}
+                  className="text-slate-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
+                >
                   Contacto
-                </a>
+                </button>
               </div>
             </div>
 
@@ -82,26 +100,28 @@ const Navigation = () => {
 
               {isAuthenticated ? (
                 <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                    onClick={() => window.location.href = '/profile'}
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    {user?.name || 'Perfil'}
-                  </Button>
-                  
-                  {user?.role === 'admin' && (
+                  <Link to="/profile">
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                      onClick={() => window.location.href = '/admin'}
+                      className="border-blue-200 text-blue-700 hover:bg-blue-50"
                     >
-                      <Settings className="w-4 h-4 mr-2" />
-                      Admin
+                      <User className="w-4 h-4 mr-2" />
+                      {user?.name || 'Perfil'}
                     </Button>
+                  </Link>
+                  
+                  {user?.role === 'admin' && (
+                    <Link to="/admin">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Admin
+                      </Button>
+                    </Link>
                   )}
                   
                   <Button 
@@ -134,14 +154,15 @@ const Navigation = () => {
                 </>
               )}
 
-              <Button 
-                size="sm" 
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
-                onClick={handleAppointmentClick}
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                Agendar Cita
-              </Button>
+              <Link to="/appointments">
+                <Button 
+                  size="sm" 
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Agendar Cita
+                </Button>
+              </Link>
             </div>
 
             {/* Mobile menu button */}
@@ -171,52 +192,63 @@ const Navigation = () => {
           {isMenuOpen && (
             <div className="md:hidden">
               <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-slate-200">
-                <a href="/" className="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">
+                <Link to="/" className="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">
                   Inicio
-                </a>
-                <a href="/marketplace" className="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">
+                </Link>
+                <Link to="/marketplace" className="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">
                   Marketplace
-                </a>
-                <a href="#servicios" className="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">
+                </Link>
+                <button 
+                  onClick={() => scrollToSection('servicios')}
+                  className="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium w-full text-left"
+                >
                   Servicios
-                </a>
-                <a href="#nosotros" className="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">
+                </button>
+                <button 
+                  onClick={() => scrollToSection('nosotros')}
+                  className="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium w-full text-left"
+                >
                   Nosotros
-                </a>
-                <a href="#contacto" className="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">
+                </button>
+                <button 
+                  onClick={() => scrollToSection('contacto')}
+                  className="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium w-full text-left"
+                >
                   Contacto
-                </a>
+                </button>
                 
                 <div className="flex flex-col space-y-2 pt-4">
                   {isAuthenticated ? (
                     <>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="border-blue-200 text-blue-700"
-                        onClick={() => window.location.href = '/profile'}
-                      >
-                        <User className="w-4 h-4 mr-2" />
-                        Mi Perfil
-                      </Button>
-                      
-                      {user?.role === 'admin' && (
+                      <Link to="/profile">
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="border-purple-200 text-purple-700"
-                          onClick={() => window.location.href = '/admin'}
+                          className="border-blue-200 text-blue-700 w-full"
                         >
-                          <Settings className="w-4 h-4 mr-2" />
-                          Administración
+                          <User className="w-4 h-4 mr-2" />
+                          Mi Perfil
                         </Button>
+                      </Link>
+                      
+                      {user?.role === 'admin' && (
+                        <Link to="/admin">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="border-purple-200 text-purple-700 w-full"
+                          >
+                            <Settings className="w-4 h-4 mr-2" />
+                            Administración
+                          </Button>
+                        </Link>
                       )}
                       
                       <Button 
                         variant="outline" 
                         size="sm" 
                         onClick={handleLogout}
-                        className="border-red-200 text-red-700"
+                        className="border-red-200 text-red-700 w-full"
                       >
                         <LogOut className="w-4 h-4 mr-2" />
                         Cerrar Sesión
@@ -227,7 +259,7 @@ const Navigation = () => {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="border-blue-200 text-blue-700"
+                        className="border-blue-200 text-blue-700 w-full"
                         onClick={() => handleAuthClick('login')}
                       >
                         <User className="w-4 h-4 mr-2" />
@@ -235,21 +267,22 @@ const Navigation = () => {
                       </Button>
                       <Button 
                         size="sm" 
-                        className="bg-gradient-to-r from-blue-600 to-blue-700"
+                        className="bg-gradient-to-r from-blue-600 to-blue-700 w-full"
                         onClick={() => handleAuthClick('register')}
                       >
                         Registrarse
                       </Button>
                     </>
                   )}
-                  <Button 
-                    size="sm" 
-                    className="bg-gradient-to-r from-orange-500 to-orange-600"
-                    onClick={handleAppointmentClick}
-                  >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Agendar Cita
-                  </Button>
+                  <Link to="/appointments">
+                    <Button 
+                      size="sm" 
+                      className="bg-gradient-to-r from-orange-500 to-orange-600 w-full"
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Agendar Cita
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -278,15 +311,14 @@ const Navigation = () => {
                 ) : (
                   <div className="space-y-2">
                     <p className="text-sm text-slate-600">{totalItems} productos en tu carrito</p>
-                    <Button 
-                      className="w-full" 
-                      onClick={() => {
-                        setIsCartOpen(false);
-                        window.location.href = '/marketplace';
-                      }}
-                    >
-                      Ver carrito completo
-                    </Button>
+                    <Link to="/marketplace">
+                      <Button 
+                        className="w-full" 
+                        onClick={() => setIsCartOpen(false)}
+                      >
+                        Ver carrito completo
+                      </Button>
+                    </Link>
                   </div>
                 )}
               </div>
@@ -304,4 +336,4 @@ const Navigation = () => {
   );
 };
 
-export default Navigation;
+export default ImprovedNavigation;
