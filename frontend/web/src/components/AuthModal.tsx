@@ -77,14 +77,14 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+      <div className="bg-card rounded-lg shadow-2xl w-full max-w-md mx-4 overflow-hidden">
         <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-2xl font-bold text-slate-800">
+          <h2 className="text-2xl font-bold text-card-foreground">
             {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600"
+            className="text-muted-foreground hover:text-foreground"
           >
             <X className="w-6 h-6" />
           </button>
@@ -95,7 +95,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
             <div className="space-y-2">
               <Label htmlFor="name">Nombre completo</Label>
               <div className="relative">
-                <User className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="name"
                   type="text"
@@ -112,7 +112,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+              <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
@@ -128,7 +128,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
           <div className="space-y-2">
             <Label htmlFor="password">Contraseña</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+              <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -142,7 +142,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -170,19 +170,19 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
 
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            className="w-full"
             disabled={isLoading}
           >
             {isLoading ? 'Procesando...' : (mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta')}
           </Button>
         </form>
 
-        <div className="p-6 border-t bg-slate-50">
-          <p className="text-center text-sm text-slate-600">
+        <div className="p-6 border-t bg-muted/50">
+          <p className="text-center text-sm text-muted-foreground">
             {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
             <button
               onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-              className="ml-2 text-blue-600 hover:text-blue-700 font-medium"
+              className="ml-2 text-primary hover:text-primary/90 font-medium"
             >
               {mode === 'login' ? 'Regístrate aquí' : 'Inicia sesión'}
             </button>

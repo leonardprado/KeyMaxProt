@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Menu, X, Calendar, User, ShoppingCart, Store, LogOut, Settings, Home } from 'lucide-react';
-import { ThemeSwitcher } from './ThemeSwitcher';
+import { ModeToggle } from '@/components/ui/mode-toggle';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
@@ -90,7 +90,7 @@ const ImprovedNavigation = () => {
             </>
           )}
           <Link to="/appointments"><Button size="sm" variant="secondary"><Calendar className="w-4 h-4 mr-2" />Agendar Cita</Button></Link>
-          <ThemeSwitcher />
+          <ModeToggle />
         </div>
       </nav>
 
@@ -125,7 +125,7 @@ const ImprovedNavigation = () => {
             <User className="w-6 h-6 mb-1" />
             Perfil
           </Link>
-          <ThemeSwitcher />
+          <ModeToggle />
         </div>
       </div>
 

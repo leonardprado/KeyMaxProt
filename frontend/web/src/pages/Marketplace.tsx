@@ -120,7 +120,11 @@ const Marketplace = () => {
     { id: 'tools', name: 'Herramientas' },
     { id: 'security', name: 'Seguridad' },
     { id: 'automotive', name: 'Automotriz' },
-    { id: 'protection', name: 'Protección' }
+    { id: 'protection', name: 'Protección' },
+    { id: 'residencial', name: 'Hogar y Comercio' },
+    { id: 'lighting', name: 'Iluminación' },
+    { id: 'audio', name: 'Audio' },
+    
   ];
 
   const filteredProducts = useMemo(() => {
@@ -173,7 +177,7 @@ const Marketplace = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-background">
       <ImprovedNavigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -240,7 +244,7 @@ const Marketplace = () => {
 
                 {/* price */}
                 <div>
-                  <h4 className="font-medium mb-2">Rango de price</h4>
+                  <h4 className="font-medium mb-2">Rango de precios</h4>
                   <div className="space-y-2">
                     <Button
                       variant={priceRange === 'all' ? "default" : "ghost"}
@@ -248,7 +252,7 @@ const Marketplace = () => {
                       onClick={() => setPriceRange('all')}
                       className="w-full justify-start"
                     >
-                      Todos los prices
+                      Todos los precios
                     </Button>
                     <Button
                       variant={priceRange === 'low' ? "default" : "ghost"}
@@ -304,8 +308,8 @@ const Marketplace = () => {
                   onChange={(e) => setSortBy(e.target.value as any)}
                   className="border border-slate-300 rounded-md px-3 py-2 text-sm"
                 >
-                  <option value="name">Ordenar por name</option>
-                  <option value="price">Ordenar por price</option>
+                  <option value="name">Ordenar por nombre</option>
+                  <option value="price">Ordenar por precio</option>
                   <option value="rating">Ordenar por valoración</option>
                 </select>
               </div>
