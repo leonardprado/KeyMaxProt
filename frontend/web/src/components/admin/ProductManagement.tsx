@@ -30,7 +30,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({ products, formatP
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Gestión de Productos</CardTitle>
-        <Button className="bg-green-600 hover:bg-green-700">
+        <Button>
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Producto
         </Button>
@@ -56,7 +56,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({ products, formatP
                 <TableCell>{product.stock}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <Star className="w-4 h-4 fill-primary text-primary" />
                     <span>4.5</span>
                   </div>
                 </TableCell>
@@ -68,7 +68,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({ products, formatP
                     <Button variant="outline" size="sm">
                       <Edit className="w-3 h-3" />
                     </Button>
-                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                    <Button variant="destructive" size="sm">
                       <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>

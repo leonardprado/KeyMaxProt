@@ -35,11 +35,11 @@ const RecentAppointments: React.FC<RecentAppointmentsProps> = ({
       <CardContent>
         <div className="space-y-4">
           {appointments.map((appointment) => (
-            <div key={appointment.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+            <div key={appointment.id} className="flex items-center justify-between p-4 bg-card rounded-lg">
               <div className="flex-1">
-                <h4 className="font-medium text-slate-900">{appointment.client}</h4>
-                <p className="text-sm text-slate-600">{appointment.service}</p>
-                <p className="text-sm text-slate-500">{appointment.date} - {appointment.time}</p>
+                <h4 className="font-medium text-card-foreground">{appointment.client}</h4>
+                <p className="text-sm text-muted-foreground">{appointment.service}</p>
+                <p className="text-sm text-muted-foreground/80">{appointment.date} - {appointment.time}</p>
               </div>
               <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(appointment.status)}`}>
                 {getStatusIcon(appointment.status)}

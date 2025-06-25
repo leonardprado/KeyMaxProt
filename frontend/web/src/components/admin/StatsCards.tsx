@@ -23,10 +23,10 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats, formatPrice }) => {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-600">Total Citas</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.totalAppointments}</p>
+              <p className="text-sm font-medium text-muted-foreground">Total Citas</p>
+              <p className="text-2xl font-bold text-foreground">{stats.totalAppointments}</p>
             </div>
-            <Calendar className="w-8 h-8 text-blue-600" />
+            <Calendar className="w-8 h-8 text-primary" />
           </div>
         </CardContent>
       </Card>
@@ -35,10 +35,10 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats, formatPrice }) => {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-600">Citas Pendientes</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.pendingAppointments}</p>
+              <p className="text-sm font-medium text-muted-foreground">Citas Pendientes</p>
+              <p className="text-2xl font-bold text-foreground">{stats.pendingAppointments}</p>
             </div>
-            <Clock className="w-8 h-8 text-orange-600" />
+            <Clock className="w-8 h-8 text-destructive" />
           </div>
         </CardContent>
       </Card>
@@ -47,10 +47,10 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats, formatPrice }) => {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-600">Productos</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.totalProducts}</p>
+              <p className="text-sm font-medium text-muted-foreground">Productos</p>
+              <p className="text-2xl font-bold text-foreground">{stats.totalProducts}</p>
             </div>
-            <Package className="w-8 h-8 text-green-600" />
+            <Package className="w-8 h-8 text-primary" />
           </div>
         </CardContent>
       </Card>
@@ -59,10 +59,10 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats, formatPrice }) => {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-600">Ingresos Mes</p>
-              <p className="text-2xl font-bold text-slate-900">{formatPrice(stats.totalRevenue)}</p>
+              <p className="text-sm font-medium text-muted-foreground">Ingresos Mes</p>
+              <p className="text-2xl font-bold text-foreground">{formatPrice(stats.totalRevenue)}</p>
             </div>
-            <DollarSign className="w-8 h-8 text-blue-600" />
+            <DollarSign className="w-8 h-8 text-primary" />
           </div>
         </CardContent>
       </Card>

@@ -37,7 +37,7 @@ const AppointmentManagement: React.FC<AppointmentManagementProps> = ({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Gestión de Citas</CardTitle>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button>
           <Plus className="w-4 h-4 mr-2" />
           Nueva Cita
         </Button>
@@ -75,7 +75,7 @@ const AppointmentManagement: React.FC<AppointmentManagementProps> = ({
                     <Button variant="outline" size="sm">
                       <Edit className="w-3 h-3" />
                     </Button>
-                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                    <Button variant="destructive" size="sm">
                       <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>

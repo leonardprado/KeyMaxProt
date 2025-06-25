@@ -12,10 +12,10 @@ const ProductList = () => {
           key={prod.id}
           className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-lg block"
         >
-          <img src={prod.imagen} alt={prod.nombre} className="w-full h-40 object-contain mb-2" />
-          <h3 className="font-bold text-lg">{prod.nombre}</h3>
-          <p className="text-orange-600 font-bold text-xl">${prod.precio.toLocaleString()}</p>
-          <p className="text-gray-500 line-through">${prod.precioOriginal.toLocaleString()}</p>
+          <img src={prod.image} alt={prod.name} className="w-full h-40 object-contain mb-2" />
+          <h3 className="font-bold text-lg">{prod.name}</h3>
+          <p className="text-orange-600 font-bold text-xl">${prod.price.toLocaleString()}</p>
+          <p className="text-gray-500 line-through">${prod.originalPrice.toLocaleString()}</p>
           <p className="text-sm text-gray-600">{prod.descripcion.slice(0, 40)}...</p>
         </Link>
       ))}
