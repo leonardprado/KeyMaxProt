@@ -6,89 +6,83 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: #c3d6ff; /* White */
+    --foreground: #0D1B2A; /* Oxford Blue */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: #FFFFFF; /* White */
+    --card-foreground: #0D1B2A; /* Oxford Blue */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: #ffffff; /* White */
+    --popover-foreground: #0D1B2A; /* Oxford Blue */
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: #007BFF; /* Bright Blue */
+    --primary-foreground: #2c8d8d; /* White */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: #FFC107; /* Amber */
+    --secondary-foreground: #0D1B2A; /* Oxford Blue */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: #81bdf8; /* Light Gray */
+    --muted-foreground: #11538d; /* Gray */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: #b5df72; /* Light Gray */
+    --accent-foreground: #0D1B2A; /* Oxford Blue */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: #DC3545; /* Red */
+    --destructive-foreground: #FFFFFF; /* White */
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: #0d3257; /* Light Gray */
+    --input: #79b4ee; /* Gray */
+    --ring: #007BFF; /* Bright Blue */
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: #F8F9FA; /* Light Gray */
+    --sidebar-foreground: #0D1B2A; /* Oxford Blue */
+    --sidebar-primary: #007BFF; /* Bright Blue */
+    --sidebar-primary-foreground: #FFFFFF; /* White */
+    --sidebar-accent: #E9ECEF; /* Lighter Gray */
+    --sidebar-accent-foreground: #0D1B2A; /* Oxford Blue */
+    --sidebar-border: #DEE2E6; /* Light Gray */
+    --sidebar-ring: #007BFF; /* Bright Blue */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: #0D1B2A; /* Oxford Blue */
+    --foreground: #FFFFFF; /* White */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: #1C2A3A; /* Darker Blue */
+    --card-foreground: #FFFFFF; /* White */
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: #0D1B2A; /* Oxford Blue */
+    --popover-foreground: #FFFFFF; /* White */
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: #00AFFF; /* Bright Cyan */
+    --primary-foreground: #0D1B2A; /* Oxford Blue */
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: #FFC107; /* Amber */
+    --secondary-foreground: #0D1B2A; /* Oxford Blue */
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: #34495E; /* Wet Asphalt */
+    --muted-foreground: #BDC3C7; /* Silver */
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: #34495E; /* Wet Asphalt */
+    --accent-foreground: #FFFFFF; /* White */
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: #E74C3C; /* Alizarin */
+    --destructive-foreground: #FFFFFF; /* White */
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: #34495E; /* Wet Asphalt */
+    --input: #2C3E50; /* Midnight Blue */
+    --ring: #00AFFF; /* Bright Cyan */
+
+    --sidebar-background: #1C2A3A; /* Darker Blue */
+    --sidebar-foreground: #FFFFFF; /* White */
+    --sidebar-primary: #00AFFF; /* Bright Cyan */
+    --sidebar-primary-foreground: #0D1B2A; /* Oxford Blue */
+    --sidebar-accent: #2C3E50; /* Midnight Blue */
+    --sidebar-accent-foreground: #FFFFFF; /* White */
+    --sidebar-border: #34495E; /* Wet Asphalt */
+    --sidebar-ring: #00AFFF; /* Bright Cyan */
   }
 }
 
