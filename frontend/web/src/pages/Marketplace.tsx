@@ -226,7 +226,7 @@ const Marketplace = () => {
 
                 {/* Categorías */}
                 <div>
-                  <h4 className="font-medium mb-2">Categoría</h4>
+                  <h4 className="font-medium mb-2 text-foreground">Categoría</h4>
                   <div className="space-y-2">
                     {categories.map(category => (
                       <Button
@@ -244,7 +244,7 @@ const Marketplace = () => {
 
                 {/* price */}
                 <div>
-                  <h4 className="font-medium mb-2">Rango de precios</h4>
+                  <h4 className="font-medium mb-2 text-foreground">Rango de precios</h4>
                   <div className="space-y-2">
                     <Button
                       variant={priceRange === 'all' ? "default" : "ghost"}
@@ -292,8 +292,8 @@ const Marketplace = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <div>
-                <h1 className="text-3xl font-bold text-slate-800">Marketplace</h1>
-                <p className="text-slate-600 mt-2">
+                <h1 className="text-3xl font-bold text-foreground">Marketplace</h1>
+                <p className="text-muted-foreground mt-2">
                   {filteredProducts.length} producto{filteredProducts.length !== 1 ? 's' : ''} 
                   {showFavorites && ' favorito'}
                   {selectedCategory !== 'all' && ` en ${categories.find(c => c.id === selectedCategory)?.name}`}
@@ -302,11 +302,11 @@ const Marketplace = () => {
 
               {/* Ordenar */}
               <div className="flex items-center gap-2">
-                <SortAsc className="w-4 h-4 text-slate-600" />
+                <SortAsc className="w-4 h-4 text-muted-foreground" />
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="border border-slate-300 rounded-md px-3 py-2 text-sm"
+                  className="border border-border bg-background text-foreground rounded-md px-3 py-2 text-sm"
                 >
                   <option value="name">Ordenar por nombre</option>
                   <option value="price">Ordenar por precio</option>
@@ -330,26 +330,26 @@ const Marketplace = () => {
                       </Link>
                       
                       {product.discount && (
-                        <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+                        <Badge variant="destructive" className="absolute top-2 left-2">
                           {product.discount}% OFF
                         </Badge>
                       )}
                       
                       {product.isBestSeller && (
-                        <Badge className="absolute top-2 right-2 bg-orange-500 hover:bg-orange-600">
+                        <Badge variant="secondary" className="absolute top-2 right-2">
                           MÁS VENDIDO
                         </Badge>
                       )}
 
                       <button
                         onClick={() => toggleFavorite(product)}
-                        className="absolute top-2 right-2 p-2 bg-white/80 rounded-full hover:bg-white transition-colors"
+                        className="absolute top-2 right-2 p-2 bg-card/80 rounded-full hover:bg-card transition-colors"
                       >
                         <Heart 
                           className={`w-4 h-4 ${
                             isFavorite(product.id) 
                               ? 'text-red-500 fill-current' 
-                              : 'text-slate-600'
+                              : 'text-muted-foreground'
                           }`} 
                         />
                       </button>
@@ -357,13 +357,13 @@ const Marketplace = () => {
 
                     <CardContent className="p-4">
                       <div className="mb-2">
-                        <span className="text-xs text-blue-600 font-semibold">
+                        <span className="text-xs text-primary font-semibold">
                           Por {product.brand}
                         </span>
                       </div>
                       
                       <Link to={`/product/${product.id}`}>
-                        <h3 className="font-medium text-slate-800 line-clamp-2 mb-2 hover:text-blue-600 transition-colors">
+                        <h3 className="font-medium text-foreground line-clamp-2 mb-2 hover:text-primary transition-colors">
                           {product.name}
                         </h3>
                       </Link>
@@ -376,36 +376,36 @@ const Marketplace = () => {
                               className={`w-4 h-4 ${
                                 i < Math.floor(product.rating)
                                   ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-slate-300'
+                                  : 'text-muted-foreground/30'
                               }`}
                             />
                           ))}
                         </div>
-                        <span className="text-sm text-slate-600">
+                        <span className="text-sm text-muted-foreground">
                           ({product.reviews})
                         </span>
                       </div>
 
                       <div className="mb-3">
                         {product.originalPrice && (
-                          <div className="text-sm text-slate-500 line-through">
+                          <div className="text-sm text-muted-foreground line-through">
                             {formatPrice(product.originalPrice)}
                           </div>
                         )}
-                        <div className="text-lg font-bold text-slate-900">
+                        <div className="text-lg font-bold text-foreground">
                           {formatPrice(product.price)}
                         </div>
                       </div>
 
                       {product.freeShipping && (
-                        <p className="text-xs text-green-600 font-semibold mb-3">
+                        <p className="text-xs text-green-500 font-semibold mb-3">
                           ¡Envío gratis!
                         </p>
                       )}
 
                       <Button
                         onClick={() => addToCart(product)}
-                        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                        className="w-full"
                       >
                         <ShoppingCart className="w-4 h-4 mr-2" />
                         Agregar al carrito
@@ -416,7 +416,7 @@ const Marketplace = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <p className="text-lg text-slate-600 mb-4">
+                <p className="text-lg text-muted-foreground mb-4">
                   {showFavorites 
                     ? 'No tienes productos favoritos aún' 
                     : 'No se encontraron productos'
