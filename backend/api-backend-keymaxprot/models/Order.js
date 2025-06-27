@@ -1,45 +1,17 @@
 const mongoose = require('mongoose');
 
-const OrderSchema = new mongoose.Schema({
-  userId: {
-    type: String,
-    required: true
-  },
-  items: [{
-    productId: {
-      type: String,
-      required: true
-    },
-    name: {
-      type: String,
-      required: true
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1
-    },
-    price: {
-      type: Number,
-      required: true
-    }
-  }],
-  total: {
-    type: Number,
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'completed', 'cancelled'],
-    default: 'pending'
-  },
-  paymentId: {
-    type: String
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+const orderSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    products: [{
+        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+        quantity: { type: Number, required: true, min: 1 }
+    }],
+    totalPrice: { type: Number, required: true },
+    status: { type: String, enum: ['pending', 'completed', 'cancelled'], default: 'pending' },
+    shippingAddress: { type: String },
+    payment: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment' },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Order', OrderSchema);
+module.exports = mongoose.model('Order', orderSchema);

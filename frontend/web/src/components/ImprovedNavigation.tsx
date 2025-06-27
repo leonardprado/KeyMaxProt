@@ -2,26 +2,22 @@
 import { useState } from 'react';
 import { Menu, X, Calendar, User, ShoppingCart, Store, LogOut, Settings, Home } from 'lucide-react';
 import { ModeToggle } from '@/components/ui/mode-toggle';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
-import AuthModal from './AuthModal';
 import NotificationCenter from './NotificationCenter';
 
 const ImprovedNavigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  
   const { totalItems } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const handleAuthClick = (mode: 'login' | 'register') => {
-    setAuthMode(mode);
-    setIsAuthModalOpen(true);
+  const handleAuthClick = () => {
+    navigate('/auth');
   };
 
   const handleLogout = () => {
@@ -84,12 +80,12 @@ const ImprovedNavigation = () => {
               <Button variant="destructive" size="sm" onClick={handleLogout}><LogOut className="w-4 h-4" /></Button>
             </div>
           ) : (
-            <>
-              <Button variant="outline" size="sm" onClick={() => handleAuthClick('login')}><User className="w-4 h-4 mr-2" />Iniciar Sesión</Button>
-              <Button size="sm" onClick={() => handleAuthClick('register')}>Registrarse</Button>
-            </>
+            <Button variant="outline" size="sm" onClick={handleAuthClick}><User className="w-4 h-4 mr-2" />Iniciar Sesión</Button>
           )}
-          <Link to="/appointments"><Button size="sm" variant="secondary"><Calendar className="w-4 h-4 mr-2" />Agendar Cita</Button></Link>
+          <Link to="/book-appointment"><Button size="sm" variant="secondary"><Calendar className="w-4 h-4 mr-2" />Agendar Cita</Button></Link>
+          <Link to="/my-appointments" className="text-foreground/80 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
+            Mis Citas
+          </Link>
           <ModeToggle />
         </div>
       </nav>
@@ -105,7 +101,7 @@ const ImprovedNavigation = () => {
             <Store className="w-6 h-6 mb-1" />
             Tienda
           </Link>
-          <Link to="/appointments" className="relative">
+          <Link to="/book-appointment" className="relative">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-background p-2 rounded-full shadow-md">
               <Button size="icon" className="w-14 h-14 rounded-full shadow-lg">
                 <Calendar className="w-6 h-6" />
@@ -124,6 +120,10 @@ const ImprovedNavigation = () => {
           <Link to="/profile" className={`flex flex-col items-center justify-center text-xs font-medium ${location.pathname.startsWith('/profile') ? 'text-primary' : 'text-foreground/80'}`}>
             <User className="w-6 h-6 mb-1" />
             Perfil
+          </Link>
+          <Link to="/my-appointments" className={`flex flex-col items-center justify-center text-xs font-medium ${location.pathname.startsWith('/my-appointments') ? 'text-primary' : 'text-foreground/80'}`}>
+            <Calendar className="w-6 h-6 mb-1" />
+            Mis Citas
           </Link>
           <ModeToggle />
         </div>
@@ -147,11 +147,7 @@ const ImprovedNavigation = () => {
         </div>
       )}
 
-      <AuthModal 
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        defaultMode={authMode}
-      />
+
     </>
   );
 };

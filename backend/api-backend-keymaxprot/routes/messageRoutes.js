@@ -15,15 +15,236 @@ const { protect } = require('../middleware/auth');
 router.use(protect);
 
 // Rutas de mensajes
+/**
+ * @swagger
+ * /api/messages:
+ *   post:
+ *     summary: Send a new message
+ *     tags:
+ *       - Messages
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/MessageInput'
+ *     responses:
+ *       201:
+ *         description: Message sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Message'
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ */
 router.post('/', enviarMensaje);
+/**
+ * @swagger
+ * /api/messages/conversaciones:
+ *   get:
+ *     summary: Get all conversations for the authenticated user
+ *     tags:
+ *       - Messages
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of conversations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Conversation'
+ *       401:
+ *         description: Unauthorized
+ */
 router.get('/conversaciones', getConversaciones);
+/**
+ * @swagger
+ * /api/messages/no-leidos:
+ *   get:
+ *     summary: Get all unread messages for the authenticated user
+ *     tags:
+ *       - Messages
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of unread messages
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Message'
+ *       401:
+ *         description: Unauthorized
+ */
 router.get('/no-leidos', getMensajesNoLeidos);
+/**
+ * @swagger
+ * /api/messages/conversacion/{conversacionId}:
+ *   get:
+ *     summary: Get messages for a specific conversation
+ *     tags:
+ *       - Messages
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: conversacionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the conversation to retrieve messages from
+ *     responses:
+ *       200:
+ *         description: A list of messages in the conversation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Message'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Conversation not found
+ */
 router.get('/conversacion/:conversacionId', getMensajesConversacion);
+/**
+ * @swagger
+ * /api/messages/{id}/destacar:
+ *   put:
+ *     summary: Mark a message as highlighted/starred
+ *     tags:
+ *       - Messages
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the message to highlight
+ *     responses:
+ *       200:
+ *         description: Message highlighted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Message not found
+ */
 router.put('/:id/destacar', destacarMensaje);
+/**
+ * @swagger
+ * /api/messages/conversacion/{id}/archivar:
+ *   put:
+ *     summary: Archive a conversation
+ *     tags:
+ *       - Messages
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the conversation to archive
+ *     responses:
+ *       200:
+ *         description: Conversation archived successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Conversation not found
+ */
 router.put('/conversacion/:id/archivar', archivarConversacion);
+/**
+ * @swagger
+ * /api/messages/{id}:
+ *   delete:
+ *     summary: Delete a message
+ *     tags:
+ *       - Messages
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the message to delete
+ *     responses:
+ *       200:
+ *         description: Message deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Message not found
+ */
 router.delete('/:id', eliminarMensaje);
 
-// Rutas adicionales para búsqueda y filtrado
+/**
+ * @swagger
+ * /api/messages/buscar:
+ *   get:
+ *     summary: Search and filter messages for the authenticated user
+ *     tags:
+ *       - Messages
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: busqueda
+ *         schema:
+ *           type: string
+ *         description: Search term for message subject or content
+ *       - in: query
+ *         name: tipo
+ *         schema:
+ *           type: string
+ *         description: Type of message to filter by
+ *       - in: query
+ *         name: fechaInicio
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for message search (YYYY-MM-DD)
+ *       - in: query
+ *         name: fechaFin
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for message search (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: A list of messages matching the search criteria
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: 'boolean' }
+ *                 count: { type: 'number' }
+ *                 mensajes:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Message'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 router.get('/buscar', async (req, res) => {
   try {
     const { busqueda, tipo, fechaInicio, fechaFin } = req.query;
@@ -70,7 +291,34 @@ router.get('/buscar', async (req, res) => {
   }
 });
 
-// Ruta para mensajes destacados
+/**
+ * @swagger
+ * /api/messages/destacados:
+ *   get:
+ *     summary: Get all highlighted/starred messages for the authenticated user
+ *     tags:
+ *       - Messages
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of highlighted messages
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: 'boolean' }
+ *                 count: { type: 'number' }
+ *                 mensajes:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Message'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 router.get('/destacados', async (req, res) => {
   try {
     const mensajesDestacados = await Message.find({
@@ -95,7 +343,43 @@ router.get('/destacados', async (req, res) => {
   }
 });
 
-// Ruta para estadísticas de mensajes
+/**
+ * @swagger
+ * /api/messages/estadisticas:
+ *   get:
+ *     summary: Get message statistics for the authenticated user
+ *     tags:
+ *       - Messages
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Message statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: 'boolean' }
+ *                 estadisticas:
+ *                   type: object
+ *                   properties:
+ *                     totalEnviados: { type: 'number', description: 'Total messages sent' }
+ *                     totalRecibidos: { type: 'number', description: 'Total messages received' }
+ *                     noLeidos: { type: 'number', description: 'Total unread messages' }
+ *                     destacados: { type: 'number', description: 'Total highlighted messages' }
+ *                     porTipo:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id: { type: 'string', description: 'Message type' }
+ *                           cantidad: { type: 'number', description: 'Count for the message type' }
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 router.get('/estadisticas', async (req, res) => {
   try {
     const totalEnviados = await Message.countDocuments({ emisor: req.user.id });

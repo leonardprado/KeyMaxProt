@@ -1,7 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:3001/api'; // Asegúrate de que esta URL sea correcta para tu backend
 
 export interface Service {
-  id: string;
+  _id: string;
   name: string;
   description: string;
   duration: number; // en minutos
@@ -23,7 +26,7 @@ export interface ContactInfo {
 }
 
 export interface Appointment {
-  id: string;
+  _id: string;
   userId: string;
   serviceId: string;
   date: string;
@@ -54,8 +57,9 @@ interface AppointmentContextType {
   setCurrentStep: (step: number) => void;
   setContactInfo: (info: ContactInfo) => void;
   getAvailableSlots: (date: string) => Promise<TimeSlot[]>;
-  createAppointment: (appointmentData: Omit<Appointment, 'id' | 'createdAt'>) => Promise<boolean>;
-  getUserAppointments: (userId: string) => Appointment[];
+  createAppointment: (appointmentData: Omit<Appointment, '_id' | 'createdAt'>) => Promise<boolean>;
+  getUserAppointments: (userId: string) => Promise<Appointment[]>;
+
 }
 
 const AppointmentContext = createContext<AppointmentContextType | undefined>(undefined);
@@ -71,7 +75,7 @@ export const useAppointment = () => {
 // Servicios de ejemplo
 const mockServices: Service[] = [
   {
-    id: '1',
+    _id: '1',
     name: 'Polarizado Completo',
     description: 'Polarizado de todas las ventanas del vehículo con film de alta calidad',
     duration: 180,
@@ -80,7 +84,7 @@ const mockServices: Service[] = [
     image: '/placeholder.svg'
   },
   {
-    id: '2',
+    _id: '2',
     name: 'Instalación de Alarma',
     description: 'Instalación profesional de sistema de alarma con control remoto',
     duration: 120,
@@ -89,7 +93,7 @@ const mockServices: Service[] = [
     image: '/placeholder.svg'
   },
   {
-    id: '3',
+    _id: '3',
     name: 'Colocación de Seguros',
     description: 'Instalación de seguros adicionales para puertas y capot',
     duration: 90,
@@ -98,7 +102,7 @@ const mockServices: Service[] = [
     image: '/placeholder.svg'
   },
   {
-    id: '4',
+    _id: '4',
     name: 'Audio y Multimedia',
     description: 'Instalación de equipo de audio y sistema multimedia',
     duration: 240,
@@ -107,7 +111,7 @@ const mockServices: Service[] = [
     image: '/placeholder.svg'
   },
   {
-    id: '5',
+    _id: '5',
     name: 'Mantenimiento General',
     description: 'Revisión y mantenimiento de sistemas de seguridad instalados',
     duration: 60,
@@ -118,7 +122,7 @@ const mockServices: Service[] = [
 ];
 
 export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
-  const [services] = useState<Service[]>(mockServices);
+  const [services, setServices] = useState<Service[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -133,48 +137,71 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const getAvailableSlots = async (date: string): Promise<TimeSlot[]> => {
-    // Simular llamada a API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const slots: TimeSlot[] = [
-      { time: '09:00', available: true },
-      { time: '10:00', available: true },
-      { time: '11:00', available: false },
-      { time: '12:00', available: true },
-      { time: '13:00', available: false },
-      { time: '14:00', available: true },
-      { time: '15:00', available: true },
-      { time: '16:00', available: true },
-      { time: '17:00', available: false },
-    ];
+    try {
+     
 
-    setAvailableSlots(slots);
-    return slots;
+      console.log('Fetching availability for service ID:', selectedService?._id);
+      const response = await axios.get(`${API_BASE_URL}/services/${selectedService?._id}/disponibilidad?date=${date}`);
+      
+      return response.data.slots;
+    } catch (error) {
+     
+    }
   };
 
-  const createAppointment = async (appointmentData: Omit<Appointment, 'id' | 'createdAt'>): Promise<boolean> => {
-    // Simular llamada a API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const newAppointment: Appointment = {
-      ...appointmentData,
-      id: Date.now().toString(),
-      createdAt: new Date()
-    };
-
-    setAppointments(prev => [...prev, newAppointment]);
-    
-    // Limpiar selección
-    setSelectedService(null);
-    setSelectedDate('');
-    setSelectedTime('');
-    
-    return true;
+  const createAppointment = async (appointmentData: Omit<Appointment, '_id' | 'createdAt'>): Promise<boolean> => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/appointments`, appointmentData);
+      const newAppointment: Appointment = response.data.appointment;
+      setAppointments(prev => [...prev, newAppointment]);
+      
+      // Limpiar selección
+      setSelectedService(null);
+      setSelectedDate('');
+      setSelectedTime('');
+      
+      return true;
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      return false;
+    }
   };
 
-  const getUserAppointments = (userId: string): Appointment[] => {
-    return appointments.filter(appointment => appointment.userId === userId);
+  const getUserAppointments = async (userId: string): Promise<Appointment[]> => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/appointments/user/${userId}`);
+      return response.data.appointments;
+    } catch (error) {
+      console.error('Error fetching user appointments:', error);
+      return [];
+    }
   };
+
+  useEffect(() => {
+    const fetchServices = async () => {
+          console.log('Fetching services from:', `${API_BASE_URL}/services`);
+          try {
+            const response = await axios.get(`${API_BASE_URL}/services`);
+            console.log('Raw services response:', response.data);
+            console.log('Services fetched successfully:', response.data.servicios);
+            const transformedServices = response.data.servicios.map((service: any) => ({
+              _id: service._id,
+              name: service.name,
+              description: service.description,
+              duration: service.duration,
+              price: service.price && service.price.$numberDecimal ? parseFloat(service.price.$numberDecimal) : service.price,
+              category: service.category,
+              image: service.image,
+            }));
+            console.log('Transformed services before setting state:', transformedServices);
+            setServices(transformedServices);
+          } catch (error) {
+            console.error('Error fetching services:', error);
+          }
+        };
+
+    fetchServices();
+  }, []);
 
   return (
     <AppointmentContext.Provider value={{

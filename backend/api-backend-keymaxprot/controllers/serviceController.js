@@ -1,5 +1,6 @@
-const Service = require('../models/Service');
 const User = require('../models/User');
+const Service = require('../models/Service');
+const APIFeatures = require('../utils/apiFeatures');
 const asyncHandler = require('../middleware/asyncHandler');
 
 // Crear nuevo servicio
@@ -25,15 +26,13 @@ exports.crearServicio = asyncHandler(async (req, res, next) => {
 
 // Obtener todos los servicios
 exports.getServicios = asyncHandler(async (req, res, next) => {
-  const { categoria, subcategoria, destacado } = req.query;
-  let query = {};
+  const features = new APIFeatures(Service.find().populate('tecnicos', 'nombre apellido'), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
 
-  if (categoria) query.categoria = categoria;
-  if (subcategoria) query.subcategoria = subcategoria;
-  if (destacado) query.destacado = destacado === 'true';
-
-  const servicios = await Service.find(query)
-    .populate('tecnicos', 'nombre apellido');
+  const servicios = await features.query;
 
   res.status(200).json({
     success: true,
@@ -158,11 +157,12 @@ exports.calificarServicio = asyncHandler(async (req, res, next) => {
   });
 });
 
-// Verificar disponibilidad
 exports.verificarDisponibilidad = async (req, res) => {
   try {
+    console.log('Received service ID:', req.params.id);
     const servicio = await Service.findById(req.params.id);
-
+    console.log('Service found by ID:', servicio ? 'Yes' : 'No');
+    
     if (!servicio) {
       return res.status(404).json({
         success: false,
@@ -170,12 +170,25 @@ exports.verificarDisponibilidad = async (req, res) => {
       });
     }
 
-    const { fecha, hora } = req.query;
-    const disponible = servicio.verificarDisponibilidad(fecha, hora);
+    const { date } = req.query;
+
+    // Lógica de ejemplo para generar slots disponibles
+    // Esto debería ser más sofisticado y basarse en la disponibilidad real del servicio y técnicos
+    const availableSlots = [
+      { time: '09:00', available: true },
+      { time: '10:00', available: true },
+      { time: '11:00', available: false },
+      { time: '12:00', available: true },
+      { time: '13:00', available: false },
+      { time: '14:00', available: true },
+      { time: '15:00', available: true },
+      { time: '16:00', available: true },
+      { time: '17:00', available: false }
+    ];
 
     res.status(200).json({
       success: true,
-      disponible
+      slots: availableSlots
     });
   } catch (error) {
     res.status(500).json({

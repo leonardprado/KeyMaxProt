@@ -1,235 +1,129 @@
 const Tutorial = require('../models/Tutorial');
-const User = require('../models/User');
+const APIFeatures = require('../utils/apiFeatures');
 const asyncHandler = require('../middleware/asyncHandler');
+const ErrorResponse = require('../utils/errorResponse');
 
-// Crear nuevo tutorial
-exports.crearTutorial = asyncHandler(async (req, res, next) => {
-  // Solo admins y técnicos pueden crear tutoriales
-  if (!['admin', 'tecnico'].includes(req.user.rol)) {
-    return res.status(403).json({
-      success: false,
-      message: 'No autorizado para crear tutoriales'
-    });
-  }
+// @desc    Create new tutorial
+// @route   POST /api/tutorials
+// @access  Private/Admin/Tecnico
+exports.createTutorial = asyncHandler(async (req, res, next) => {
+  req.body.author_id = req.user.id;
 
-  const tutorial = await Tutorial.create({
-    ...req.body,
-    autor: req.user.id
-  });
+  const tutorial = await Tutorial.create(req.body);
 
   res.status(201).json({
     success: true,
-    tutorial
+    data: tutorial,
   });
 });
 
-// Obtener todos los tutoriales
-exports.getTutoriales = asyncHandler(async (req, res, next) => {
-  const { categoria, nivel, busqueda } = req.query;
-  let query = {};
+// @desc    Get all tutorials
+// @route   GET /api/tutorials
+// @access  Public
+exports.getTutorials = asyncHandler(async (req, res, next) => {
+  const features = new APIFeatures(Tutorial.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
 
-  if (categoria) query.categoria = categoria;
-  if (nivel) query.nivel = nivel;
-  if (busqueda) {
-    query.$or = [
-      { titulo: { $regex: busqueda, $options: 'i' } },
-      { descripcion: { $regex: busqueda, $options: 'i' } },
-      { etiquetas: { $regex: busqueda, $options: 'i' } }
-    ];
-  }
-
-  const tutoriales = await Tutorial.find(query)
-    .populate('autor', 'nombre apellido')
-    .sort({ fechaPublicacion: -1 });
+  const tutorials = await features.query;
 
   res.status(200).json({
     success: true,
-    count: tutoriales.length,
-    tutoriales
+    count: tutorials.length,
+    data: tutorials,
   });
 });
 
-// Obtener un tutorial específico
+// @desc    Get single tutorial
+// @route   GET /api/tutorials/:id
+// @access  Public
 exports.getTutorial = asyncHandler(async (req, res, next) => {
-  const tutorial = await Tutorial.findById(req.params.id)
-    .populate('autor', 'nombre apellido')
-    .populate('comentarios.usuario', 'nombre apellido');
+  const tutorial = await Tutorial.findById(req.params.id).populate(
+    'author_id',
+    'name'
+  );
 
   if (!tutorial) {
-    return res.status(404).json({
-      success: false,
-      message: 'Tutorial no encontrado'
-    });
+    return next(
+      new ErrorResponse(`Tutorial not found with id of ${req.params.id}`, 404)
+    );
   }
-
-  // Incrementar vistas
-  await tutorial.incrementarVistas();
 
   res.status(200).json({
     success: true,
-    tutorial
+    data: tutorial,
   });
 });
 
-// Actualizar tutorial
-exports.actualizarTutorial = asyncHandler(async (req, res, next) => {
+// @desc    Update tutorial
+// @route   PUT /api/tutorials/:id
+// @access  Private/Admin/Tecnico
+exports.updateTutorial = asyncHandler(async (req, res, next) => {
   let tutorial = await Tutorial.findById(req.params.id);
 
   if (!tutorial) {
-    return res.status(404).json({
-      success: false,
-      message: 'Tutorial no encontrado'
-    });
+    return next(
+      new ErrorResponse(`Tutorial not found with id of ${req.params.id}`, 404)
+    );
   }
 
-  // Verificar autorización
-  if (tutorial.autor.toString() !== req.user.id && req.user.rol !== 'admin') {
-    return res.status(403).json({
-      success: false,
-      message: 'No autorizado para actualizar este tutorial'
-    });
+  // Make sure user is tutorial owner or admin
+  if (
+    tutorial.author_id.toString() !== req.user.id &&
+    req.user.role !== 'admin' &&
+    req.user.role !== 'tecnico'
+  ) {
+    return next(
+      new ErrorResponse(
+        `User ${req.user.id} is not authorized to update this tutorial`,
+        401
+      )
+    );
   }
 
-  tutorial = await Tutorial.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    {
-      new: true,
-      runValidators: true
-    }
-  );
+  tutorial = await Tutorial.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
 
   res.status(200).json({
     success: true,
-    tutorial
+    data: tutorial,
   });
 });
 
-// Eliminar tutorial
-exports.eliminarTutorial = asyncHandler(async (req, res, next) => {
+// @desc    Delete tutorial
+// @route   DELETE /api/tutorials/:id
+// @access  Private/Admin/Tecnico
+exports.deleteTutorial = asyncHandler(async (req, res, next) => {
   const tutorial = await Tutorial.findById(req.params.id);
 
   if (!tutorial) {
-    return res.status(404).json({
-      success: false,
-      message: 'Tutorial no encontrado'
-    });
+    return next(
+      new ErrorResponse(`Tutorial not found with id of ${req.params.id}`, 404)
+    );
   }
 
-  // Verificar autorización
-  if (tutorial.autor.toString() !== req.user.id && req.user.rol !== 'admin') {
-    return res.status(403).json({
-      success: false,
-      message: 'No autorizado para eliminar este tutorial'
-    });
+  // Make sure user is tutorial owner or admin
+  if (
+    tutorial.author_id.toString() !== req.user.id &&
+    req.user.role !== 'admin' &&
+    req.user.role !== 'tecnico'
+  ) {
+    return next(
+      new ErrorResponse(
+        `User ${req.user.id} is not authorized to delete this tutorial`,
+        401
+      )
+    );
   }
 
   await tutorial.remove();
 
   res.status(200).json({
     success: true,
-    message: 'Tutorial eliminado correctamente'
+    data: {},
   });
 });
-
-// Añadir comentario
-exports.agregarComentario = asyncHandler(async (req, res, next) => {
-  const tutorial = await Tutorial.findById(req.params.id);
-
-  if (!tutorial) {
-    return res.status(404).json({
-      success: false,
-      message: 'Tutorial no encontrado'
-    });
-  }
-
-  const nuevoComentario = {
-    usuario: req.user.id,
-    texto: req.body.texto,
-    calificacion: req.body.calificacion
-  };
-
-  tutorial.comentarios.push(nuevoComentario);
-  await tutorial.save();
-
-  res.status(200).json({
-    success: true,
-    tutorial
-  });
-});
-
-// Marcar tutorial como completado
-exports.marcarCompletado = async (req, res) => {
-  try {
-    const tutorial = await Tutorial.findById(req.params.id);
-
-    if (!tutorial) {
-      return res.status(404).json({
-        success: false,
-        message: 'Tutorial no encontrado'
-      });
-    }
-
-    await tutorial.marcarCompletado(req.body.tiempoCompletado);
-
-    // Actualizar lista de tutoriales vistos del usuario
-    await User.findByIdAndUpdate(
-      req.user.id,
-      { $addToSet: { tutorialesVistos: req.params.id } }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Tutorial marcado como completado'
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error al marcar tutorial como completado',
-      error: error.message
-    });
-  }
-};
-
-// Votar utilidad de comentario
-exports.votarComentario = async (req, res) => {
-  try {
-    const tutorial = await Tutorial.findById(req.params.id);
-
-    if (!tutorial) {
-      return res.status(404).json({
-        success: false,
-        message: 'Tutorial no encontrado'
-      });
-    }
-
-    const comentario = tutorial.comentarios.id(req.params.comentarioId);
-
-    if (!comentario) {
-      return res.status(404).json({
-        success: false,
-        message: 'Comentario no encontrado'
-      });
-    }
-
-    // Actualizar votos
-    if (req.body.voto === 'positivo') {
-      comentario.utilidad.votosPositivos += 1;
-    } else if (req.body.voto === 'negativo') {
-      comentario.utilidad.votosNegativos += 1;
-    }
-
-    await tutorial.save();
-
-    res.status(200).json({
-      success: true,
-      comentario
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error al votar comentario',
-      error: error.message
-    });
-  }
-};

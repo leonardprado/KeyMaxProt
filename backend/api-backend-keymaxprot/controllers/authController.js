@@ -1,183 +1,132 @@
 const User = require('../models/User');
+const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/asyncHandler');
-const jwt = require('jsonwebtoken');
 
-// Generar Token JWT
-const generarToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE
-  });
-};
+// @desc    Register user
+// @route   POST /api/auth/register
+// @access  Public
+exports.register = asyncHandler(async (req, res, next) => {
+  const { name, email, password, role } = req.body;
 
-// Registrar usuario
-exports.registro = asyncHandler(async (req, res, next) => {
-  const { email, password, nombre, apellido, telefono, direccion } = req.body;
-
-  // Verificar si el usuario ya existe
-  const usuarioExistente = await User.findOne({ email });
-  if (usuarioExistente) {
-    return res.status(400).json({
-      success: false,
-      message: 'El email ya está registrado'
-    });
-  }
-
-  // Crear usuario
-  const usuario = await User.create({
+  // Create user
+  const user = await User.create({
+    name,
     email,
     password,
-    nombre,
-    apellido,
-    telefono,
-    direccion
+    role,
   });
 
-  // Generar token
-  const token = generarToken(usuario._id);
-
-  res.status(201).json({
-    success: true,
-    token,
-    usuario: {
-      id: usuario._id,
-      nombre: usuario.nombre,
-      apellido: usuario.apellido,
-      email: usuario.email,
-      rol: usuario.rol
-    }
-  });
+  sendTokenResponse(user, 200, res);
 });
 
-// Login usuario
+// @desc    Login user
+// @route   POST /api/auth/login
+// @access  Public
 exports.login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
-  // Validar email y password
+  // Validate email & password
   if (!email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: 'Por favor proporcione email y contraseña'
-    });
+    return next(new ErrorResponse('Please provide an email and password', 400));
   }
 
-  // Verificar usuario
-  const usuario = await User.findOne({ email });
-  if (!usuario) {
-    return res.status(401).json({
-      success: false,
-      message: 'Credenciales inválidas'
-    });
+  // Check for user
+  const user = await User.findOne({ email }).select('+password');
+
+  if (!user) {
+    return next(new ErrorResponse('Invalid credentials', 401));
   }
 
-  // Verificar contraseña
-  const passwordCorrecta = await usuario.compararPassword(password);
-  if (!passwordCorrecta) {
-    return res.status(401).json({
-      success: false,
-      message: 'Credenciales inválidas'
-    });
+  // Check if password matches
+  const isMatch = await user.matchPassword(password);
+
+  if (!isMatch) {
+    return next(new ErrorResponse('Invalid credentials', 401));
   }
 
-  // Verificar si el usuario está activo
-  if (!usuario.activo) {
-    return res.status(401).json({
-      success: false,
-      message: 'Usuario desactivado'
-    });
-  }
+  sendTokenResponse(user, 200, res);
+});
 
-  // Actualizar último acceso
-  usuario.ultimoAcceso = new Date();
-  await usuario.save();
-
-  // Generar token
-  const token = generarToken(usuario._id);
+// @desc    Log user out / clear cookie
+// @route   GET /api/auth/logout
+// @access  Private
+exports.logout = asyncHandler(async (req, res, next) => {
+  res.cookie('token', 'none', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
 
   res.status(200).json({
     success: true,
-    token,
-    usuario: {
-      id: usuario._id,
-      nombre: usuario.nombre,
-      apellido: usuario.apellido,
-      email: usuario.email,
-      rol: usuario.rol
-    }
+    data: {},
   });
 });
 
-// Obtener perfil del usuario
-exports.getPerfil = asyncHandler(async (req, res, next) => {
-  const usuario = await User.findById(req.user.id)
-    .select('-password')
-    .populate('vehiculos')
-    .populate('historialServicios');
+// @desc    Change user password
+// @route   PUT /api/auth/cambiar-password
+// @access  Private
+exports.cambiarPassword = asyncHandler(async (req, res, next) => {
+  // Placeholder for changing user password logic
+  res.status(200).json({
+    success: true,
+    message: 'cambiarPassword function placeholder',
+  });
+});
+
+
+
+// @desc    Get current logged in user
+// @route   GET /api/auth/me
+// @access  Private
+exports.getMe = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
 
   res.status(200).json({
     success: true,
-    usuario
+    data: user,
   });
 });
 
-// Actualizar perfil
-exports.actualizarPerfil = asyncHandler(async (req, res, next) => {
-  const actualizaciones = {
-    nombre: req.body.nombre,
-    apellido: req.body.apellido,
-    telefono: req.body.telefono,
-    direccion: req.body.direccion
+// Get token from model, create cookie and send response
+const sendTokenResponse = (user, statusCode, res) => {
+  // Create token
+  const token = user.getSignedJwtToken();
+
+  const options = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
   };
 
-  const usuario = await User.findByIdAndUpdate(
-    req.user.id,
-    actualizaciones,
-    {
-      new: true,
-      runValidators: true
-    }
-  ).select('-password');
-
-  res.status(200).json({
-    success: true,
-    usuario
-  });
-});
-
-// Cambiar contraseña
-exports.cambiarPassword = asyncHandler(async (req, res, next) => {
-  const { passwordActual, nuevaPassword } = req.body;
-
-  const usuario = await User.findById(req.user.id);
-
-  // Verificar contraseña actual
-  const passwordCorrecta = await usuario.compararPassword(passwordActual);
-  if (!passwordCorrecta) {
-    return res.status(401).json({
-      success: false,
-      message: 'Contraseña actual incorrecta'
-    });
+  if (process.env.NODE_ENV === 'production') {
+    options.secure = true;
   }
 
-  // Actualizar contraseña
-  usuario.password = nuevaPassword;
-  await usuario.save();
+  res.status(statusCode).cookie('token', token, options).json({
+    success: true,
+    token,
+  });
+};
 
+// @desc    Update user profile
+// @route   PUT /api/auth/perfil
+// @access  Private
+exports.actualizarPerfil = asyncHandler(async (req, res, next) => {
+  // Placeholder for updating user profile logic
   res.status(200).json({
     success: true,
-    message: 'Contraseña actualizada correctamente'
+    message: 'actualizarPerfil function placeholder',
   });
 });
 
-// Desactivar cuenta
+// @desc    Deactivate user account
+// @route   DELETE /api/auth/desactivar
+// @access  Private
 exports.desactivarCuenta = asyncHandler(async (req, res, next) => {
-  await User.findByIdAndUpdate(
-    req.user.id,
-    { activo: false },
-    { new: true }
-  );
-
+  // Placeholder for deactivating user account logic
   res.status(200).json({
     success: true,
-    message: 'Cuenta desactivada correctamente'
+    message: 'desactivarCuenta function placeholder',
   });
 });

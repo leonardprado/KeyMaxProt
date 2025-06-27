@@ -1,4 +1,4 @@
-# Auto-Tunin
+# KeymaxProt
 local
 Stacks Tecnológicos Recomendados
 Para una aplicación que funcione tanto en web como en móviles y que incluya las funcionalidades que mencionas (registro de citas, cupones, alertas, mensajería, control de trabajos, facturas electrónicas, valoraciones, etc.), te recomiendo considerar los siguientes stacks:

@@ -1,184 +1,71 @@
 const mongoose = require('mongoose');
 
-const TutorialSchema = new mongoose.Schema({
-  titulo: {
+const tutorialSchema = new mongoose.Schema({
+  title: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
-  descripcion: {
+  description: {
     type: String,
-    required: true
+    required: true,
+    trim: true,
   },
-  categoria: {
+  contentUrl: {
     type: String,
-    enum: [
-      'mantenimiento_preventivo',
-      'reparacion',
-      'mejoras',
-      'consejos',
-      'seguridad',
-      'ahorro_combustible',
-      'cuidado_vehicular',
-      'emergencias',
-      'tecnologia',
-      'hogar_comercio'
-    ],
-    required: true
+    required: false, // Optional if contentBody is provided
+    trim: true,
   },
-  nivel: {
+  contentBody: {
     type: String,
-    enum: ['principiante', 'intermedio', 'avanzado'],
-    required: true
+    required: false, // Optional if contentUrl is provided
+    trim: true,
   },
-  contenido: {
-    video: {
-      url: String,
-      duracion: Number, // en minutos
-      plataforma: String // YouTube, Vimeo, etc.
-    },
-    pasos: [{
-      titulo: String,
-      descripcion: String,
-      imagen: String,
-      tiempo: Number, // en minutos
-      herramientasNecesarias: [String],
-      advertencias: [String]
-    }],
-    documentosAdjuntos: [{
-      nombre: String,
-      url: String,
-      tipo: String // PDF, DOC, etc.
-    }]
+  category: {
+    type: String,
+    required: true,
+    trim: true,
   },
-  autor: {
+  author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
-  etiquetas: [String],
-  tiempoEstimado: {
-    type: Number, // en minutos
-    required: true
+  difficultyLevel: {
+    type: String,
+    enum: ['beginner', 'intermediate', 'advanced'],
+    default: 'beginner',
   },
-  dificultad: {
+  tags: [{
+    type: String,
+    trim: true,
+  }],
+  averageRating: {
     type: Number,
-    min: 1,
+    default: 0,
+    min: 0,
     max: 5,
-    required: true
   },
-  requisitosRecomendados: [{
-    descripcion: String,
-    obligatorio: Boolean
-  }],
-  aplicableA: [{
-    tipo: String, // tipo de vehículo o propiedad
-    marca: String,
-    modelo: String,
-    año: {
-      desde: Number,
-      hasta: Number
-    }
-  }],
-  estadisticas: {
-    vistas: {
-      type: Number,
-      default: 0
-    },
-    completados: {
-      type: Number,
-      default: 0
-    },
-    tiempoPromedioFinalizacion: {
-      type: Number,
-      default: 0
-    },
-    calificacionPromedio: {
-      type: Number,
-      default: 0
-    }
-  },
-  comentarios: [{
-    usuario: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    texto: String,
-    calificacion: {
-      type: Number,
-      min: 1,
-      max: 5
-    },
-    fecha: {
-      type: Date,
-      default: Date.now
-    },
-    utilidad: {
-      votosPositivos: {
-        type: Number,
-        default: 0
-      },
-      votosNegativos: {
-        type: Number,
-        default: 0
-      }
-    }
-  }],
-  relacionados: [{
+  reviews: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Tutorial'
+    ref: 'Review',
   }],
-  activo: {
-    type: Boolean,
-    default: true
-  },
-  destacado: {
-    type: Boolean,
-    default: false
-  },
-  fechaPublicacion: {
+  createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
-  ultimaActualizacion: Date
-}, {
-  timestamps: true
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-// Middleware para actualizar estadísticas
-TutorialSchema.pre('save', function(next) {
-  if (this.isModified('comentarios')) {
-    const comentarios = this.comentarios;
-    const totalCalificaciones = comentarios.length;
-    
-    if (totalCalificaciones > 0) {
-      const sumaCalificaciones = comentarios.reduce((acc, com) => acc + com.calificacion, 0);
-      this.estadisticas.calificacionPromedio = (sumaCalificaciones / totalCalificaciones).toFixed(1);
-    }
-  }
-  
-  this.ultimaActualizacion = new Date();
+// Update `updatedAt` field on save
+tutorialSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
   next();
 });
 
-// Método para incrementar vistas
-TutorialSchema.methods.incrementarVistas = async function() {
-  this.estadisticas.vistas += 1;
-  await this.save();
-};
+const Tutorial = mongoose.model('Tutorial', tutorialSchema);
 
-// Método para marcar como completado
-TutorialSchema.methods.marcarCompletado = async function(tiempoCompletado) {
-  this.estadisticas.completados += 1;
-  
-  // Actualizar tiempo promedio de finalización
-  const tiempoActual = this.estadisticas.tiempoPromedioFinalizacion;
-  const totalCompletados = this.estadisticas.completados;
-  
-  this.estadisticas.tiempoPromedioFinalizacion = 
-    ((tiempoActual * (totalCompletados - 1)) + tiempoCompletado) / totalCompletados;
-  
-  await this.save();
-};
-
-module.exports = mongoose.model('Tutorial', TutorialSchema);
+module.exports = Tutorial;

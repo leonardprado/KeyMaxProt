@@ -4,116 +4,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
 import { useCart } from '@/contexts/CartContext';
-import { Producto } from '@/contexts/ProductContext';
+import { useProducts } from '@/contexts/ProductContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { Link } from 'react-router-dom';
 import Cart from '@/components/Cart';
 import ImprovedNavigation from '@/components/ImprovedNavigation';
 
+
 const Marketplace = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [priceRange, setPriceRange] = useState<'all' | 'low' | 'medium' | 'high'>('all');
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'rating'>('name');
   const [showFavorites, setShowFavorites] = useState(false);
   
   const { addToCart } = useCart();
-  const { toggleFavorite, isFavorite, favorites } = useFavorites();
-
-  // Datos de ejemplo de productos
-  const products: Producto[] = [
-    {
-      id: 1,
-      descripcion: 'Set completo de herramientas con 46 piezas incluyendo llaves, tubos y accesorios en un práctico estuche',
-      stock: 150,
-      name: 'Set Caja Herramientas Juego Llave Tubo Kit 46 Piezas Estuche',
-      price: 13519,
-      originalPrice: 22200,
-      image: 'https://images.unsplash.com/photo-1573089988574-cf9c24c6c1b6?w=400&h=300&fit=crop',
-      category: 'tools',
-      brand: 'ALPINA',
-      rating: 4.4,
-      reviews: 3750,
-      discount: 39,
-      isBestSeller: true,
-      freeShipping: true
-    },
-    {
-      id: 2,
-      descripcion: 'Parlante Bluetooth portátil con luces LED, potencia de 30W RMS, conectividad inalámbrica y diseño moderno',
-      stock: 75,
-      name: 'Parlante Bluetooth 30w Rms Jd E300 Portátil Luces Led Inalámbrico',
-      price: 74787,
-      originalPrice: 149999,
-      image: 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400&h=300&fit=crop',
-      category: 'audio',
-      brand: 'JD',
-      rating: 4.5,
-      reviews: 132,
-      discount: 50,
-      freeShipping: true
-    },
-    {
-      id: 3,
-      descripcion: 'Auriculares inalámbricos con cancelación de ruido, batería de larga duración y diseño ergonómico',
-      stock: 200,
-      name: 'Auriculares Inalámbricos Xiaomi Redmi Buds 6 Play Black',
-      price: 21299,
-      originalPrice: 29980,
-      image: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&h=300&fit=crop',
-      category: 'audio',
-      brand: 'XIAOMI',
-      rating: 4.8,
-      reviews: 15925,
-      discount: 26,
-      isBestSeller: true,
-      freeShipping: true
-    },
-    {
-      id: 4,
-      descripcion: 'Sistema de alarma para auto con 2 controles remotos y sensor de impacto incluido',
-      stock: 100,
-      name: 'Alarma Auto X28 Z10 Rs + 2 Controles + Sensor Impacto',
-      price: 89990,
-      originalPrice: 129990,
-      image: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=300&fit=crop',
-      category: 'security',
-      brand: 'X28',
-      rating: 4.6,
-      reviews: 892,
-      discount: 31,
-      freeShipping: true
-    },
-    {
-      id: 5,
-      descripcion: 'Kit de láminas polarizadas 3M Crystalline con 70% de transparencia para ventanas laterales de vehículos',
-      stock: 50,
-      name: 'Kit Polarizado Láminas 3M Crystalline 70% Ventanas Laterales',
-      price: 45000,
-      image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=300&fit=crop',
-      category: 'automotive',
-      brand: '3M',
-      rating: 4.9,
-      reviews: 234,
-      freeShipping: true
-    },
-    {
-      id: 6,
-      descripcion: 'Kit de luces LED Xenón de alta potencia con 12000 lúmenes, compatible con múltiples modelos',
-      stock: 120,
-      name: 'Luces LED Kit Xenón H4 H7 H11 9005 9006 Philips 12000LM',
-      price: 32500,
-      originalPrice: 48000,
-      image: 'https://images.unsplash.com/photo-1542362567-b07e54358753?w=400&h=300&fit=crop',
-      category: 'lighting',
-      brand: 'PHILIPS',
-      rating: 4.7,
-      reviews: 567,
-      discount: 32,
-      freeShipping: true
-    }
-  ];
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const { products } = useProducts();
 
   const categories = [
     { id: 'all', name: 'Todos los productos' },
@@ -148,15 +57,8 @@ const Marketplace = () => {
       filtered = filtered.filter(product => product.category === selectedCategory);
     }
 
-    // Filtrar por rango de price
-    if (priceRange !== 'all') {
-      filtered = filtered.filter(product => {
-        if (priceRange === 'low') return product.price < 10000;
-        if (priceRange === 'medium') return product.price >= 10000 && product.price < 25000;
-        if (priceRange === 'high') return product.price >= 25000;
-        return true;
-      });
-    }
+    // Filtrar por rango de precio
+    filtered = filtered.filter(product => product.price >= priceRange[0] && product.price <= priceRange[1]);
 
     // Ordenar
     filtered.sort((a, b) => {
@@ -168,6 +70,14 @@ const Marketplace = () => {
     return filtered;
   }, [products, searchTerm, selectedCategory, priceRange, sortBy, showFavorites, isFavorite]);
 
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('all');
+    setPriceRange([0, 100000]);
+    setSortBy('name');
+    setShowFavorites(false);
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
@@ -177,17 +87,16 @@ const Marketplace = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <ImprovedNavigation />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
           <div className="lg:w-1/4 space-y-6">
             {/* Búsqueda */}
-            <Card>
+            <Card className="bg-card text-card-foreground border-border">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-foreground">
                   <Search className="w-5 h-5" />
                   Buscar productos
                 </CardTitle>
@@ -197,15 +106,15 @@ const Marketplace = () => {
                   placeholder="Buscar por name o marca..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
+                  className="w-full bg-input text-foreground border-border placeholder:text-muted-foreground"
                 />
               </CardContent>
             </Card>
 
             {/* Filtros */}
-            <Card>
+            <Card className="bg-card text-card-foreground border-border">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-foreground">
                   <Filter className="w-5 h-5" />
                   Filtros
                 </CardTitle>
@@ -242,44 +151,31 @@ const Marketplace = () => {
                   </div>
                 </div>
 
-                {/* price */}
+                {/* Rango de precios con Slider */}
                 <div>
                   <h4 className="font-medium mb-2 text-foreground">Rango de precios</h4>
-                  <div className="space-y-2">
-                    <Button
-                      variant={priceRange === 'all' ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setPriceRange('all')}
-                      className="w-full justify-start"
-                    >
-                      Todos los precios
-                    </Button>
-                    <Button
-                      variant={priceRange === 'low' ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setPriceRange('low')}
-                      className="w-full justify-start"
-                    >
-                      Menos de $10.000
-                    </Button>
-                    <Button
-                      variant={priceRange === 'medium' ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setPriceRange('medium')}
-                      className="w-full justify-start"
-                    >
-                      $10.000 - $25.000
-                    </Button>
-                    <Button
-                      variant={priceRange === 'high' ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setPriceRange('high')}
-                      className="w-full justify-start"
-                    >
-                      Más de $25.000
-                    </Button>
+                  <Slider
+                    min={0}
+                    max={100000}
+                    step={1000}
+                    value={priceRange}
+                    onValueChange={(value) => setPriceRange(value as [number, number])}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-sm text-muted-foreground mt-2">
+                    <span>{formatPrice(priceRange[0])}</span>
+                    <span>{formatPrice(priceRange[1])}</span>
                   </div>
                 </div>
+
+                {/* Botón Limpiar filtros */}
+                <Button
+                  onClick={handleClearFilters}
+                  variant="outline"
+                  className="w-full mt-4"
+                >
+                  Limpiar filtros
+                </Button>
               </CardContent>
             </Card>
 
@@ -306,7 +202,7 @@ const Marketplace = () => {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="border border-border bg-background text-foreground rounded-md px-3 py-2 text-sm"
+                  className="border border-border bg-background text-foreground rounded-md px-3 py-2 text-sm focus:ring-primary focus:border-primary"
                 >
                   <option value="name">Ordenar por nombre</option>
                   <option value="price">Ordenar por precio</option>
@@ -319,7 +215,7 @@ const Marketplace = () => {
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => (
-                  <Card key={product.id} className="group hover:shadow-lg transition-shadow duration-200">
+                  <Card key={product.id} className="group hover:shadow-lg transition-shadow duration-200 bg-card text-card-foreground border-border">
                     <div className="relative">
                       <Link to={`/product/${product.id}`}>
                         <img
@@ -343,7 +239,7 @@ const Marketplace = () => {
 
                       <button
                         onClick={() => toggleFavorite(product)}
-                        className="absolute top-2 right-2 p-2 bg-card/80 rounded-full hover:bg-card transition-colors"
+                        className="absolute top-2 right-2 p-2 bg-card/80 rounded-full hover:bg-card transition-colors text-muted-foreground hover:text-red-500"
                       >
                         <Heart 
                           className={`w-4 h-4 ${
@@ -422,17 +318,6 @@ const Marketplace = () => {
                     : 'No se encontraron productos'
                   }
                 </p>
-                <Button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedCategory('all');
-                    setPriceRange('all');
-                    setShowFavorites(false);
-                  }}
-                  variant="outline"
-                >
-                  Limpiar filtros
-                </Button>
               </div>
             )}
           </div>

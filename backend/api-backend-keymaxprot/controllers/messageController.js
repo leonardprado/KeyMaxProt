@@ -1,5 +1,6 @@
-const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
+const Message = require('../models/Message');
+const APIFeatures = require('../utils/apiFeatures');
 const User = require('../models/User');
 const asyncHandler = require('../middleware/asyncHandler');
 
@@ -49,7 +50,6 @@ exports.enviarMensaje = asyncHandler(async (req, res, next) => {
 // Obtener mensajes de una conversación
 exports.getMensajesConversacion = asyncHandler(async (req, res, next) => {
   const { conversacionId } = req.params;
-  const { page = 1, limit = 20 } = req.query;
 
   const conversacion = await Conversation.findById(conversacionId);
 
@@ -61,12 +61,15 @@ exports.getMensajesConversacion = asyncHandler(async (req, res, next) => {
     });
   }
 
-  const mensajes = await Message.find({ conversacionId })
-    .sort({ fechaEnvio: -1 })
-    .skip((page - 1) * limit)
-    .limit(limit)
+  const features = new APIFeatures(Message.find({ conversacionId })
     .populate('emisor', 'nombre apellido')
-    .populate('receptor', 'nombre apellido');
+    .populate('receptor', 'nombre apellido'), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const mensajes = await features.query;
 
   // Marcar mensajes como leídos
   await Message.updateMany(
@@ -87,12 +90,17 @@ exports.getMensajesConversacion = asyncHandler(async (req, res, next) => {
 
 // Obtener conversaciones del usuario
 exports.getConversaciones = asyncHandler(async (req, res, next) => {
-  const conversaciones = await Conversation.find({
+  const features = new APIFeatures(Conversation.find({
     participantes: req.user.id
   })
     .populate('participantes', 'nombre apellido')
-    .populate('ultimoMensaje.mensaje')
-    .sort({ 'ultimoMensaje.fecha': -1 });
+    .populate('ultimoMensaje.mensaje'), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const conversaciones = await features.query;
 
   res.status(200).json({
     success: true,
@@ -171,29 +179,26 @@ exports.archivarConversacion = asyncHandler(async (req, res, next) => {
 });
 
 // Obtener mensajes no leídos
-exports.getMensajesNoLeidos = async (req, res) => {
-  try {
-    const mensajesNoLeidos = await Message.find({
-      receptor: req.user.id,
-      estado: { $ne: 'leido' }
-    })
-      .populate('emisor', 'nombre apellido')
-      .populate('conversacionId')
-      .sort({ fechaEnvio: -1 });
+exports.getMensajesNoLeidos = asyncHandler(async (req, res, next) => {
+  const features = new APIFeatures(Message.find({
+    receptor: req.user.id,
+    estado: { $ne: 'leido' }
+  })
+    .populate('emisor', 'nombre apellido')
+    .populate('conversacionId'), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
 
-    res.status(200).json({
-      success: true,
-      count: mensajesNoLeidos.length,
-      mensajes: mensajesNoLeidos
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error al obtener mensajes no leídos',
-      error: error.message
-    });
-  }
-};
+  const mensajesNoLeidos = await features.query;
+
+  res.status(200).json({
+    success: true,
+    count: mensajesNoLeidos.length,
+    mensajes: mensajesNoLeidos
+  });
+});
 
 // Eliminar mensaje
 exports.eliminarMensaje = async (req, res) => {

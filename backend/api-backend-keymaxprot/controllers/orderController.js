@@ -1,116 +1,111 @@
 const Order = require('../models/Order');
-const Invoice = require('../models/Invoice');
+const APIFeatures = require('../utils/apiFeatures');
 const Payment = require('../models/Payment');
-const mercadopago = require('mercadopago');
+const Product = require('../models/Product');
 const asyncHandler = require('../middleware/asyncHandler');
+const ErrorResponse = require('../utils/errorResponse');
 
-// Crear una nueva orden
+// @desc    Create new order
+// @route   POST /api/orders
+// @access  Private
 exports.createOrder = asyncHandler(async (req, res, next) => {
-  const { userId, items, total } = req.body;
-  
-  const order = new Order({
-    userId,
-    items,
-    total
+  const { items } = req.body;
+
+  if (!items || items.length === 0) {
+    return next(new ErrorResponse('No order items provided', 400));
+  }
+
+  let totalAmount = 0;
+  const orderItems = [];
+
+  for (const item of items) {
+    const product = await Product.findById(item.product_id);
+
+    if (!product) {
+      return next(new ErrorResponse(`Product not found with id ${item.product_id}`, 404));
+    }
+
+    if (product.stock_quantity < item.quantity) {
+      return next(new ErrorResponse(`Not enough stock for product ${product.name}`, 400));
+    }
+
+    totalAmount += product.price * item.quantity;
+    orderItems.push({
+      product_id: product._id,
+      quantity: item.quantity,
+      price: product.price,
+    });
+
+    // Decrease stock quantity
+    product.stock_quantity -= item.quantity;
+    await product.save();
+  }
+
+  const order = await Order.create({
+    user_id: req.user.id,
+    items: orderItems,
+    total_amount: totalAmount,
+    status: 'pending',
   });
 
-  const savedOrder = await order.save();
-
-  // Crear preferencia de pago en MercadoPago
-  const preference = {
-    items: items.map(item => ({
-      title: item.name,
-      unit_price: item.price,
-      quantity: item.quantity,
-    })),
-    external_reference: savedOrder._id.toString(),
-    back_urls: {
-      success: `${process.env.FRONTEND_URL}/checkout/success`,
-      failure: `${process.env.FRONTEND_URL}/checkout/failure`,
-      pending: `${process.env.FRONTEND_URL}/checkout/pending`
-    },
-    auto_return: 'approved',
-  };
-
-  const response = await mercadopago.preferences.create(preference);
+  // Create a pending payment for the order
+  await Payment.create({
+    order_id: order._id,
+    user_id: req.user.id,
+    amount: totalAmount,
+    status: 'pending',
+  });
 
   res.status(201).json({
-    order: savedOrder,
-    init_point: response.body.init_point
+    success: true,
+    data: order,
   });
 });
 
-// Obtener todas las órdenes de un usuario
-exports.getUserOrders = asyncHandler(async (req, res, next) => {
-  const { userId } = req.params;
-  const orders = await Order.find({ userId }).sort({ createdAt: -1 });
-  res.json(orders);
+// @desc    Get logged in user's orders
+// @route   GET /api/orders/my-orders
+// @access  Private
+exports.getMyOrders = asyncHandler(async (req, res, next) => {
+  const features = new APIFeatures(Order.find({ user_id: req.user.id }).populate(
+    'items.product_id',
+    'name image_url'
+  ), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const orders = await features.query;
+
+  res.status(200).json({
+    success: true,
+    count: orders.length,
+    data: orders,
+  });
 });
 
-// Procesar el webhook de MercadoPago
-exports.handlePaymentWebhook = asyncHandler(async (req, res, next) => {
-  const { type, data } = req.body;
+// @desc    Get single order
+// @route   GET /api/orders/:id
+// @access  Private/Admin
+exports.getOrder = asyncHandler(async (req, res, next) => {
+  const order = await Order.findById(req.params.id);
 
-  if (type === 'payment') {
-    const paymentInfo = await mercadopago.payment.findById(data.id);
-    const orderId = paymentInfo.body.external_reference;
-    const status = paymentInfo.body.status;
-
-    // Actualizar estado de la orden
-    const order = await Order.findById(orderId);
-    if (order) {
-      order.status = status === 'approved' ? 'completed' : status;
-      await order.save();
-
-      // Crear registro de pago
-      const payment = new Payment({
-        orderId: order._id,
-        transactionId: data.id,
-        amount: paymentInfo.body.transaction_amount,
-        paymentMethod: paymentInfo.body.payment_method_id,
-        status: status,
-        paymentDetails: {
-          merchantId: paymentInfo.body.merchant_id,
-          payerId: paymentInfo.body.payer.id,
-          paymentTime: paymentInfo.body.date_created,
-          merchantReference: orderId
-        }
-      });
-      await payment.save();
-
-      // Si el pago fue aprobado, generar factura
-      if (status === 'approved') {
-        const invoice = new Invoice({
-          orderId: order._id,
-          userId: order.userId,
-          items: order.items.map(item => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-            subtotal: item.price * item.quantity
-          })),
-          subtotal: order.total,
-          tax: order.total * 0.19, // 19% IVA
-          total: order.total * 1.19,
-          paymentMethod: paymentInfo.body.payment_method_id,
-          paymentStatus: 'completed'
-        });
-        await invoice.save();
-      }
-    }
+  if (!order) {
+    return next(new ErrorResponse(`Order not found with id of ${req.params.id}`, 404));
   }
 
-  res.status(200).send('OK');
-});
-
-// Obtener factura por ID de orden
-exports.getInvoice = asyncHandler(async (req, res, next) => {
-  const { orderId } = req.params;
-  const invoice = await Invoice.findOne({ orderId });
-  
-  if (!invoice) {
-    return res.status(404).json({ error: 'Factura no encontrada' });
+  // Make sure user is order owner or admin
+  if (order.user_id.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `User ${req.user.id} is not authorized to view this order`,
+        401
+      )
+    );
   }
 
-  res.json(invoice);
+  res.status(200).json({
+    success: true,
+    data: order,
+  });
 });
