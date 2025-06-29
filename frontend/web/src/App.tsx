@@ -22,6 +22,12 @@ import Blog from "./pages/Blog";
 import AuthPage from "./pages/AuthPage";
 import AppointmentPage from "./pages/AppointmentPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import DashboardLayout from './components/layout/DashboardLayout';
+import ProductListPage from './pages/dashboard/products/ProductListPage';
+import ProductCreatePage from './pages/dashboard/products/ProductCreatePage';
+import ProductEditPage from './pages/dashboard/products/ProductEditPage';
+// Importa tus otras páginas, como Login, Home, etc.
+// Importa las páginas específicas del dashboard
 
 const queryClient = new QueryClient();
 
@@ -48,21 +54,29 @@ const App = () => (
                       <Route path="/blog" element={<Blog />} />
                       <Route path="/book-appointment" element={<AppointmentPage />} />
                     </Route>
-                    <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                      <Route path="/admin" element={<AdminDashboard />} />
+
+                    {/* Rutas protegidas del Dashboard */}
+                    <Route path="/dashboard" element={<DashboardLayout />}>
+                      {/* La página de inicio del dashboard */}
+                      {/* <Route index element={<OverviewPage />} /> */}
+                      
+                      {/* La ruta para la lista de productos */}
+                      <Route path="products" element={<ProductListPage />} />
+
+                      {/* Aquí añadirás más rutas como /dashboard/products/new, etc. */}
+                      <Route path="products/new" element={<ProductCreatePage />} />
+                      <Route path="products/edit/:productId" element={<ProductEditPage />} />
                     </Route>
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
                   </Routes>
                 </BrowserRouter>
               </TooltipProvider>
             </ThemeProvider>
-            </ProductProvider>
-            </AppointmentProvider>
-          </FavoritesProvider>
-        </CartProvider>
-      </NotificationProvider>
-  </QueryClientProvider>
+          </ProductProvider>
+        </AppointmentProvider>
+      </FavoritesProvider>
+    </CartProvider>
+  </NotificationProvider>
+</QueryClientProvider>
 );
 
 export default App;

@@ -33,6 +33,8 @@ const Appointment = require('./Appointment');
 const Tutorial = require('./Tutorial');
 const Review = require('./Review');
 const ServiceCatalog = require('./ServiceCatalog');
+const Thread = require('./Thread');
+const Post = require('./Post');
 
 
 // --- Exportación de todos los modelos ---
@@ -51,4 +53,6 @@ module.exports = {
     Tutorial,
   Review,
   ServiceCatalog,
+  Thread,
+  Post,
 };

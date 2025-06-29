@@ -8,6 +8,10 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     role: { type: String, enum: ['user', 'admin', 'tecnico'], default: 'user' },
     createdAt: { type: Date, default: Date.now },
+    fcm_token: {
+        type: String,
+        default: null
+    },
     profile: {
         name: { type: String },
         lastName: { type: String },

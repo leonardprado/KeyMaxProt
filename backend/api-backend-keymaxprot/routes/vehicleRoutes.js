@@ -4,7 +4,8 @@ const express = require('express');
    getMyVehicles, 
    getVehicle, 
    updateVehicle, 
-   deleteVehicle 
+   deleteVehicle, 
+   getVehicleRecommendations 
  } = require('../controllers/vehicleController'); 
  
  const { protect } = require('../middleware/authMiddleware'); 
@@ -152,4 +153,50 @@ router.route('/:id')
   .put(updateVehicle)
   .delete(deleteVehicle); 
  
+ /**
+ * @swagger
+ * /api/vehicles/{id}/recommendations:
+ *   get:
+ *     summary: Get maintenance recommendations for a specific vehicle
+ *     tags:
+ *       - Vehicles
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the vehicle to get recommendations for
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved maintenance recommendations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     recommendedServices:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                     commonIssues:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (user does not own the vehicle)
+ *       404:
+ *         description: Vehicle not found
+ */
+router.get('/:id/recommendations', getVehicleRecommendations);
+
  module.exports = router;

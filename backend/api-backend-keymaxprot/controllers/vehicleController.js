@@ -2,6 +2,7 @@ const asyncHandler = require('../middleware/asyncHandler');
  const ErrorResponse = require('../utils/errorResponse'); 
  const Vehicle = require('../models/Vehicle'); 
  const User = require('../models/User');
+const MaintenancePlan = require('../models/MaintenancePlan');
 const APIFeatures = require('../utils/apiFeatures'); 
  
  // @desc    Registrar un nuevo vehículo 
@@ -121,8 +122,54 @@ const APIFeatures = require('../utils/apiFeatures');
  
    await vehicle.remove(); 
  
-   res.status(200).json({ 
-     success: true, 
-     data: {} 
-   }); 
+   res.status(200).json({
+     success: true,
+     data: {}
+   });
  });
+
+// @desc    Get maintenance recommendations for a vehicle
+// @route   GET /api/vehicles/:id/recommendations
+// @access  Private
+exports.getVehicleRecommendations = asyncHandler(async (req, res, next) => {
+  const vehicle = await Vehicle.findById(req.params.id);
+
+  if (!vehicle) {
+    return next(new ErrorResponse(`Vehículo no encontrado con el id ${req.params.id}`, 404));
+  }
+
+  // Check if the user owns the vehicle or is an admin
+  const isAuthorized = vehicle.ownership.some(owner => owner.user_id.toString() === req.user.id);
+
+  if (!isAuthorized && req.user.role !== 'admin') {
+    return next(new ErrorResponse('No autorizado para ver las recomendaciones de este vehículo', 403));
+  }
+
+  const { brand, model, year, mileage } = vehicle;
+
+  // Find matching maintenance plans
+  const maintenancePlans = await MaintenancePlan.find({
+    brand: brand,
+    model: model,
+    year_range: { $regex: `^${year.toString().substring(0, 3)}`, $options: 'i' }, // Match year range (e.g., 201X)
+    mileage_interval: { $lte: mileage },
+  }).sort({ mileage_interval: -1 });
+
+  let recommendedServices = [];
+  let commonIssues = [];
+
+  if (maintenancePlans.length > 0) {
+    // Get the most relevant plan based on mileage (the one closest to current mileage without exceeding it)
+    const mostRelevantPlan = maintenancePlans[0];
+    recommendedServices = mostRelevantPlan.recommended_services;
+    commonIssues = mostRelevantPlan.common_issues;
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      recommendedServices,
+      commonIssues,
+    },
+  });
+});

@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require("cors");
 const mercadopago = require("mercadopago");
 const connectDB = require('./config/database');
+const startNotificationWorker = require('./utils/notificationWorker');
+const startMaintenanceNotifier = require('./workers/maintenanceNotifier');
+require('./config/firebaseAdmin');
 const authRoutes = require('./routes/authRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const vehicleRoutes = require('./routes/vehicleRoutes');
@@ -14,6 +17,8 @@ const appointmentRoutes = require('./routes/appointmentRoutes');
 const shopRoutes = require('./routes/shopRoutes');
 const productRoutes = require('./routes/productRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const threadRoutes = require('./routes/threadRoutes');
+const postRoutes = require('./routes/postRoutes');
 const technicianRoutes = require('./routes/technicianRoutes');
 const errorHandler = require('./middleware/errorMiddleware');
 const colors = require('colors');
@@ -86,7 +91,50 @@ const swaggerOptions = {
     security: [{
       bearerAuth: []
     }],
+    tags: [
+      { name: 'Threads', description: 'Operaciones relacionadas con los hilos del foro' },
+      { name: 'Posts', description: 'Operaciones relacionadas con las respuestas de los hilos' },
+    ],
     schemas: {
+      ThreadInput: {
+        type: 'object',
+        required: ['title', 'content', 'author'],
+        properties: {
+          title: { type: 'string', description: 'Título del hilo', example: 'Problema con el motor de arranque' },
+          content: { type: 'string', description: 'Contenido principal del hilo', example: 'Mi coche no arranca por las mañanas, creo que es el motor de arranque.' },
+          author: { type: 'string', description: 'ID del autor del hilo', example: '60d0fe4f5311236168a109c3' },
+          vehicle: { type: 'string', description: 'ID del vehículo asociado al hilo', example: '60d0fe4f5311236168a109c4' },
+          tags: { type: 'array', items: { type: 'string' }, description: 'Etiquetas del hilo', example: ['motor', 'arranque', 'fallo'] },
+          isClosed: { type: 'boolean', description: 'Indica si el hilo está cerrado', example: false },
+        },
+        example: {
+          title: 'Problema con el motor de arranque',
+          content: 'Mi coche no arranca por las mañanas, creo que es el motor de arranque.',
+          author: '60d0fe4f5311236168a109c3',
+          vehicle: '60d0fe4f5311236166a109c4',
+          tags: ['motor', 'arranque', 'fallo'],
+          isClosed: false,
+        },
+      },
+      PostInput: {
+        type: 'object',
+        required: ['content', 'author', 'thread'],
+        properties: {
+          content: { type: 'string', description: 'Contenido de la respuesta', example: 'Podría ser la batería, revisa los bornes.' },
+          author: { type: 'string', description: 'ID del autor de la respuesta', example: '60d0fe4f5311236168a109c5' },
+          thread: { type: 'string', description: 'ID del hilo al que pertenece la respuesta', example: '60c72b2f9b1d8c001f8e4cde' },
+          upvotes: { type: 'integer', description: 'Número de votos positivos', example: 0 },
+          isSolution: { type: 'boolean', description: 'Indica si la respuesta es la solución al hilo', example: false },
+        },
+        example: {
+          content: 'Podría ser la batería, revisa los bornes.',
+          author: '60d0fe4f5311236168a109c5',
+          thread: '60c72b2f9b1d8c001f8e4cde',
+          upvotes: 0,
+          isSolution: false,
+        },
+      },
+
       Product: {
         type: 'object',
         properties: {
@@ -178,7 +226,224 @@ const swaggerOptions = {
           updatedAt: '2023-01-01T10:30:00Z',
         },
       },
+      Thread: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string', description: 'ID único del hilo', example: '60c72b2f9b1d8c001f8e4cde' },
+          title: { type: 'string', description: 'Título del hilo', example: 'Problema con el motor de arranque' },
+          content: { type: 'string', description: 'Contenido principal del hilo', example: 'Mi coche no arranca por las mañanas, creo que es el motor de arranque.' },
+          author: { type: 'string', description: 'ID del autor del hilo', example: '60d0fe4f5311236168a109c3' },
+          vehicle: { type: 'string', description: 'ID del vehículo asociado al hilo', example: '60d0fe4f5311236168a109c4' },
+          tags: { type: 'array', items: { type: 'string' }, description: 'Etiquetas del hilo', example: ['motor', 'arranque', 'fallo'] },
+          isClosed: { type: 'boolean', description: 'Indica si el hilo está cerrado', example: false },
+          postCount: { type: 'integer', description: 'Número de respuestas en el hilo', example: 5 },
+          createdAt: { type: 'string', format: 'date-time', description: 'Fecha de creación del hilo' },
+          updatedAt: { type: 'string', format: 'date-time', description: 'Fecha de última actualización del hilo' },
+        },
+        example: {
+          _id: '60c72b2f9b1d8c001f8e4cde',
+          title: 'Problema con el motor de arranque',
+          content: 'Mi coche no arranca por las mañanas, creo que es el motor de arranque.',
+          author: '60d0fe4f5311236168a109c3',
+          vehicle: '60d0fe4f5311236166a109c4',
+          tags: ['motor', 'arranque', 'fallo'],
+          isClosed: false,
+          postCount: 5,
+          createdAt: '2023-01-01T10:00:00Z',
+          updatedAt: '2023-01-01T10:30:00Z',
+        },
+      },
+      Post: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string', description: 'ID único de la respuesta', example: '60c72b2f9b1d8c001f8e4cdf' },
+          content: { type: 'string', description: 'Contenido de la respuesta', example: 'Podría ser la batería, revisa los bornes.' },
+          author: { type: 'string', description: 'ID del autor de la respuesta', example: '60d0fe4f5311236168a109c5' },
+          thread: { type: 'string', description: 'ID del hilo al que pertenece la respuesta', example: '60c72b2f9b1d8c001f8e4cde' },
+          upvotes: { type: 'integer', description: 'Número de votos positivos', example: 10 },
+          isSolution: { type: 'boolean', description: 'Indica si la respuesta es la solución al hilo', example: false },
+          createdAt: { type: 'string', format: 'date-time', description: 'Fecha de creación de la respuesta' },
+          updatedAt: { type: 'string', format: 'date-time', description: 'Fecha de última actualización de la respuesta' },
+        },
+        example: {
+          _id: '60c72b2f9b1d8c001f8e4cdf',
+          content: 'Podría ser la batería, revisa los bornes.',
+          author: '60d0fe4f5311236168a109c5',
+          thread: '60c72b2f9b1d8c001f8e4cde',
+          upvotes: 10,
+          isSolution: false,
+          createdAt: '2023-01-01T10:05:00Z',
+          updatedAt: '2023-01-01T10:05:00Z',
+        },
+      },
       Service: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string', description: 'Service ID' },
+          nombre: { type: 'string', description: 'Name of the service' },
+          categoria: { type: 'string', description: 'Category of the service' },
+          subcategoria: { type: 'string', description: 'Subcategory of the service' },
+          descripcion: { type: 'string', description: 'Description of the service' },
+          precio: { type: 'number', description: 'Price of the service' },
+          duracionEstimada: { type: 'string', description: 'Estimated duration of the service' },
+          disponibilidad: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                dia: { type: 'string', description: 'Day of the week', example: 'Lunes' },
+                horas: {
+                  type: 'array',
+                  items: { type: 'string', example: '09:00-10:00' },
+                  description: 'Available time slots for the day',
+                },
+              },
+            },
+          },
+          imageUrl: { type: 'string', description: 'URL of the service image' },
+          createdAt: { type: 'string', format: 'date-time', description: 'Creation timestamp' },
+          updatedAt: { type: 'string', format: 'date-time', description: 'Last update timestamp' },
+        },
+        example: {
+          _id: '60c72b2f9b1d8c001f8e4cde',
+          nombre: 'Cambio de Aceite',
+          categoria: 'Mantenimiento',
+          subcategoria: 'Motor',
+          descripcion: 'Servicio completo de cambio de aceite y filtro.',
+          precio: 50.00,
+          duracionEstimada: '1 hora',
+          disponibilidad: [
+            { dia: 'Lunes', horas: ['09:00-10:00', '10:00-11:00'] },
+            { dia: 'Martes', horas: ['09:00-10:00'] },
+          ],
+          imageUrl: 'https://example.com/images/aceite.jpg',
+          createdAt: '2023-01-01T10:00:00Z',
+          updatedAt: '2023-01-01T10:00:00Z',
+        },
+      },
+    },
+    paths: {
+      '/threads': {
+        get: {
+          summary: 'Obtener todos los hilos/preguntas del foro',
+          tags: ['Threads'],
+          security: [{ bearerAuth: [] }],
+          responses: {
+            '200': {
+              description: 'Lista de hilos obtenida exitosamente',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      count: { type: 'integer', example: 1 },
+                      data: { type: 'array', items: { $ref: '#/components/schemas/Thread' } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        post: {
+          summary: 'Crear un nuevo hilo/pregunta en el foro',
+          tags: ['Threads'],
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ThreadInput' },
+              },
+            },
+          },
+          responses: {
+            '201': {
+              description: 'Hilo creado exitosamente',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: { $ref: '#/components/schemas/Thread' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/threads/{id}': {
+        get: {
+          summary: 'Obtener un hilo específico y sus respuestas',
+          tags: ['Threads'],
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: 'id', in: 'path', required: true, description: 'ID del hilo', schema: { type: 'string' } },
+          ],
+          responses: {
+            '200': {
+              description: 'Hilo y respuestas obtenidas exitosamente',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          thread: { $ref: '#/components/schemas/Thread' },
+                          posts: { type: 'array', items: { $ref: '#/components/schemas/Post' } },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '404': { description: 'Hilo no encontrado' },
+          },
+        },
+      },
+      '/threads/{threadId}/posts': {
+        post: {
+          summary: 'Crear una nueva respuesta en un hilo específico',
+          tags: ['Posts'],
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: 'threadId', in: 'path', required: true, description: 'ID del hilo', schema: { type: 'string' } },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/PostInput' },
+              },
+            },
+          },
+          responses: {
+            '201': {
+              description: 'Respuesta creada exitosamente',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: { $ref: '#/components/schemas/Post' },
+                    },
+                  },
+                },
+              },
+            },
+            '404': { description: 'Hilo no encontrado' },
+          },
+        },
+      },
         type: 'object',
         properties: {
           _id: { type: 'string', description: 'Service ID' },
@@ -858,9 +1123,8 @@ const swaggerOptions = {
             address: 'Avenida Siempre Viva 742',
             phone: '555-987-6543',
           },
-        },
-      },
-      },
+    },
+  },
       ReviewInput: {
         type: 'object',
         required: ['author', 'rating', 'comment', 'item'],
@@ -924,6 +1188,7 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/shops', shopRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/threads', threadRoutes);
 app.use('/api/technicians', technicianRoutes);
 
 
@@ -936,6 +1201,12 @@ const PORT = process.env.PORT || 3001;
 const startServer = async () => {
   try {
     await connectDB(); // Esperar a que la conexión a MongoDB se establezca
+
+    // Iniciar worker de notificaciones
+startNotificationWorker();
+
+// Iniciar notificador de mantenimiento
+startMaintenanceNotifier();
     
     app.listen(PORT, () => {
       console.log('='.repeat(50));

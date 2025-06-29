@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import authService from '../services/authService';
 
 export interface User {
   id: string;
@@ -14,6 +15,7 @@ export interface User {
     notifications: boolean;
     marketing: boolean;
   };
+  token?: string; // Add token to User interface
 }
 
 interface AuthContextType {
@@ -40,15 +42,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simular carga inicial desde localStorage
   useEffect(() => {
-    const savedUser = localStorage.getItem('keymax_user');
-    if (savedUser) {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser.user); // Assuming the stored object has a 'user' property
       } catch (error) {
-        console.error('Error parsing saved user:', error);
-        localStorage.removeItem('keymax_user');
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('user');
       }
     }
     setIsLoading(false);
@@ -56,66 +58,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-    
-    // Simular llamada a API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Simular validación básica
-    if (email && password.length >= 6) {
-      const newUser: User = {
-        id: Date.now().toString(),
-        email,
-        name: email.split('@')[0],
-        role: email.includes('admin') ? 'admin' : 'customer',
-        createdAt: new Date(),
-        preferences: {
-          notifications: true,
-          marketing: false
-        }
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('keymax_user', JSON.stringify(newUser));
+    try {
+      const data = await authService.login({ email, password });
+      if (data.user) {
+        setUser(data.user);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
+    } finally {
       setIsLoading(false);
-      return true;
     }
-    
-    setIsLoading(false);
-    return false;
   };
 
   const register = async (email: string, password: string, name: string): Promise<boolean> => {
     setIsLoading(true);
-    
-    // Simular llamada a API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (email && password.length >= 6 && name.trim()) {
-      const newUser: User = {
-        id: Date.now().toString(),
-        email,
-        name: name.trim(),
-        role: 'customer',
-        createdAt: new Date(),
-        preferences: {
-          notifications: true,
-          marketing: false
-        }
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('keymax_user', JSON.stringify(newUser));
+    try {
+      const data = await authService.register({ email, password, name });
+      if (data.user) {
+        setUser(data.user);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      return false;
+    } finally {
       setIsLoading(false);
-      return true;
     }
-    
-    setIsLoading(false);
-    return false;
   };
 
   const logout = () => {
+    authService.logout();
     setUser(null);
-    localStorage.removeItem('keymax_user');
   };
 
   const updateProfile = async (data: Partial<User>): Promise<boolean> => {
