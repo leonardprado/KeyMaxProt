@@ -8,7 +8,7 @@ const {
     getTechniciansByShop
 } = require('../controllers/technicianController');
 
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
 const router = express.Router({ mergeParams: true });
 

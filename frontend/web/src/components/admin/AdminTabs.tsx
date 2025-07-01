@@ -2,7 +2,7 @@
 import React from 'react';
 import { TrendingUp, Calendar, Package, Users } from 'lucide-react';
 
-type TabType = 'overview' | 'appointments' | 'products' | 'users';
+type TabType = 'overview' | 'appointments' | 'products' | 'users' | 'services';
 
 interface TabItem {
   id: TabType;
@@ -20,6 +20,7 @@ const AdminTabs: React.FC<AdminTabsProps> = ({ activeTab, setActiveTab }) => {
     { id: 'overview', name: 'Resumen', icon: TrendingUp },
     { id: 'appointments', name: 'Citas', icon: Calendar },
     { id: 'products', name: 'Productos', icon: Package },
+    { id: 'services', name: 'Servicios', icon: Package }, // Usamos Package por ahora, se puede cambiar
     { id: 'users', name: 'Clientes', icon: Users }
   ];
 

@@ -9,9 +9,10 @@ import OverviewSection from '@/components/admin/OverviewSection';
 import AppointmentManagement from '@/components/admin/AppointmentManagement';
 import ProductManagement from '@/components/admin/ProductManagement';
 import UserManagement from '@/components/admin/UserManagement';
+import ServiceListPage from './dashboard/services/ServiceListPage';
 import { Button } from '@/components/ui/button';
 
-type TabType = 'overview' | 'appointments' | 'products' | 'users';
+type TabType = 'overview' | 'appointments' | 'products' | 'users' | 'services';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -155,6 +156,8 @@ const AdminDashboard = () => {
         );
       case 'users':
         return <UserManagement />;
+      case 'services':
+        return <ServiceListPage />;
       default:
         return null;
     }

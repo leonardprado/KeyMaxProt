@@ -10,7 +10,7 @@ const {
   verificarDisponibilidad,
   asignarTecnico
 } = require('../controllers/serviceController');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
 // Rutas públicas
 /**
@@ -151,8 +151,7 @@ router.get('/:id', getServicio);
  */
 router.get('/:id/disponibilidad', verificarDisponibilidad);
 
-// Rutas protegidas
-router.use(protect);
+// Rutas protegidas que requieren autenticación y/o autorización
 
 /**
  * @swagger
@@ -198,7 +197,7 @@ router.use(protect);
  *       500:
  *         description: Server error
  */
-router.post('/:id/calificar', calificarServicio);
+router.post('/:id/calificar', protect, calificarServicio);
 
 /**
  * @swagger
@@ -228,7 +227,7 @@ router.post('/:id/calificar', calificarServicio);
  *       403:
  *         description: Forbidden
  */
-router.post('/', authorize('admin', 'tecnico'), crearServicio);
+router.post('/', protect, authorize('admin'), crearServicio);
 
 /**
  * @swagger
@@ -267,7 +266,7 @@ router.post('/', authorize('admin', 'tecnico'), crearServicio);
  *       404:
  *         description: Service not found
  */
-router.put('/:id', authorize('admin', 'tecnico'), actualizarServicio);
+router.put('/:id', protect, authorize('admin'), actualizarServicio);
 
 /**
  * @swagger
@@ -294,7 +293,7 @@ router.put('/:id', authorize('admin', 'tecnico'), actualizarServicio);
  *       404:
  *         description: Service not found
  */
-router.delete('/:id', authorize('admin'), eliminarServicio);
+router.delete('/:id', protect, authorize('admin'), eliminarServicio);
 
 /**
  * @swagger
@@ -337,7 +336,7 @@ router.delete('/:id', authorize('admin'), eliminarServicio);
  *       404:
  *         description: Service not found
  */
-router.post('/:id/tecnicos', authorize('admin'), asignarTecnico);
+router.put('/:id/asignar-tecnico', protect, authorize('admin'), asignarTecnico);
 
 /**
  * @swagger

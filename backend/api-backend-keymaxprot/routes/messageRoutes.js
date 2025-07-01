@@ -9,10 +9,9 @@ const {
   getMensajesNoLeidos,
   eliminarMensaje
 } = require('../controllers/messageController');
-const { protect } = require('../middleware/auth');
+const { protect } = require('../middleware/authMiddleware');
 
-// Todas las rutas requieren autenticación
-router.use(protect);
+
 
 // Rutas de mensajes
 /**
@@ -42,7 +41,7 @@ router.use(protect);
  *       401:
  *         description: Unauthorized
  */
-router.post('/', enviarMensaje);
+router.post('/', protect, enviarMensaje);
 /**
  * @swagger
  * /api/messages/conversaciones:
@@ -64,7 +63,7 @@ router.post('/', enviarMensaje);
  *       401:
  *         description: Unauthorized
  */
-router.get('/conversaciones', getConversaciones);
+router.get('/conversaciones', protect, getConversaciones);
 /**
  * @swagger
  * /api/messages/no-leidos:
@@ -86,7 +85,7 @@ router.get('/conversaciones', getConversaciones);
  *       401:
  *         description: Unauthorized
  */
-router.get('/no-leidos', getMensajesNoLeidos);
+router.get('/no-leidos', protect, getMensajesNoLeidos);
 /**
  * @swagger
  * /api/messages/conversacion/{conversacionId}:
@@ -117,7 +116,7 @@ router.get('/no-leidos', getMensajesNoLeidos);
  *       404:
  *         description: Conversation not found
  */
-router.get('/conversacion/:conversacionId', getMensajesConversacion);
+router.get('/conversacion/:conversacionId', protect, getMensajesConversacion);
 /**
  * @swagger
  * /api/messages/{id}/destacar:
@@ -142,7 +141,7 @@ router.get('/conversacion/:conversacionId', getMensajesConversacion);
  *       404:
  *         description: Message not found
  */
-router.put('/:id/destacar', destacarMensaje);
+router.put('/:id/destacar', protect, destacarMensaje);
 /**
  * @swagger
  * /api/messages/conversacion/{id}/archivar:
@@ -167,7 +166,7 @@ router.put('/:id/destacar', destacarMensaje);
  *       404:
  *         description: Conversation not found
  */
-router.put('/conversacion/:id/archivar', archivarConversacion);
+router.put('/conversacion/:id/archivar', protect, archivarConversacion);
 /**
  * @swagger
  * /api/messages/{id}:
@@ -192,7 +191,7 @@ router.put('/conversacion/:id/archivar', archivarConversacion);
  *       404:
  *         description: Message not found
  */
-router.delete('/:id', eliminarMensaje);
+router.delete('/:id', protect, eliminarMensaje);
 
 /**
  * @swagger

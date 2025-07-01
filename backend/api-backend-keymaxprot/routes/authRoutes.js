@@ -1,18 +1,33 @@
+// routes/authRoutes.js
+
 const express = require('express');
 const router = express.Router();
+
+const { 
+  register, 
+  login, 
+  logout, 
+  getMe, 
+  actualizarPerfil, 
+  cambiarPassword, 
+  desactivarCuenta 
+} = require('../controllers/authController');
+
+// ¡VERIFICA ESTA LÍNEA! Asegúrate de que el nombre del archivo es correcto.
+// Si tu archivo se llama 'authMiddleware.js', cambia 'auth' por 'authMiddleware'.
+const { protect } = require('../middleware/authMiddleware');
 
 /**
  * @swagger
  * tags:
  *   name: Auth
- *   description: User authentication and authorization
+ *   description: Autenticación y autorización de usuarios
  */
 
-const { register, login, logout, getMe, actualizarPerfil, cambiarPassword, desactivarCuenta } = require('../controllers/authController');
-const { protect } = require('../middleware/auth');
+// ===============================================
+// ---          RUTAS PÚBLICAS                 ---
+// ===============================================
 
-// Rutas públicas
-router.post('/register', register);
 /**
  * @swagger
  * /api/auth/register:
@@ -24,23 +39,22 @@ router.post('/register', register);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserInput'
+ *             type: object
+ *             properties:
+ *                name: { type: string, example: "Leonardo Prado" }
+ *                email: { type: string, example: "test@example.com" }
+ *                password: { type: string, example: "password123" }
  *     responses:
  *       201:
  *         description: Usuario registrado exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       400:
-         description: Datos de registro inválidos
  */
-router.post('/login', login);
+router.post('/register', register);
+
 /**
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: Log in a user
+ *     summary: Iniciar sesión de un usuario
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -48,68 +62,41 @@ router.post('/login', login);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - email
- *               - password
  *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *               password:
- *                 type: string
- *                 format: password
- *             example:
- *               email: test@example.com
- *               password: password123
+ *               email: { type: string, format: email, example: "test@example.com" }
+ *               password: { type: string, format: password, example: "password123" }
  *     responses:
  *       200:
- *         description: User logged in successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 token:
- *                   type: string
- *                 user:
- *                   $ref: '#/components/schemas/User'
- *       401:
- *         description: Invalid credentials
- *       500:
- *         description: Server error
+ *         description: Inicio de sesión exitoso
  */
+router.post('/login', login);
 
 
-// Rutas protegidas
-router.use(protect); // Middleware de autenticación para las siguientes rutas
+// ===============================================
+// ---          RUTAS PRIVADAS (protegidas)    ---
+// ===============================================
 
-router.get('/perfil', getMe);
 /**
  * @swagger
- * /api/auth/perfil:
+ * /api/auth/me:
  *   get:
- *     summary: Get user profile
+ *     summary: Obtener el perfil del usuario actualmente logueado
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: User profile retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
+ *         description: Perfil del usuario obtenido exitosamente
  *       401:
- *         description: Unauthorized
- *       500:
- *         description: Server error
+ *         description: No autorizado
  */
-router.put('/perfil', actualizarPerfil);
+router.get('/me', protect, getMe);
+
 /**
  * @swagger
  * /api/auth/perfil:
  *   put:
- *     summary: Update user profile
+ *     summary: Actualizar el perfil del usuario
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -118,27 +105,21 @@ router.put('/perfil', actualizarPerfil);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserInput'
+ *             type: object
+ *             properties:
+ *                name: { type: string, example: "Leo Prado" }
+ *                lastName: { type: string, example: "Developer" }
  *     responses:
  *       200:
- *         description: User profile updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       400:
- *         description: Bad request
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Server error
+ *         description: Perfil actualizado exitosamente
  */
-router.put('/cambiar-password', cambiarPassword);
+router.put('/perfil', protect, actualizarPerfil);
+
 /**
  * @swagger
  * /api/auth/cambiar-password:
  *   put:
- *     summary: Change user password
+ *     summary: Cambiar la contraseña del usuario
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -148,46 +129,45 @@ router.put('/cambiar-password', cambiarPassword);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - oldPassword
- *               - newPassword
  *             properties:
- *               oldPassword:
- *                 type: string
- *                 format: password
- *               newPassword:
- *                 type: string
- *                 format: password
- *             example:
- *               oldPassword: oldpassword123
- *               newPassword: newpassword456
+ *               oldPassword: { type: string, format: password }
+ *               newPassword: { type: string, format: password }
  *     responses:
  *       200:
- *         description: Password changed successfully
- *       400:
- *         description: Bad request
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Server error
+ *         description: Contraseña cambiada exitosamente
  */
-router.delete('/desactivar', desactivarCuenta);
+router.put('/cambiar-password', protect, cambiarPassword);
+
 /**
  * @swagger
- * /api/auth/desactivar:
- *   delete:
- *     summary: Deactivate user account
+ * /api/auth/logout:
+ *   get:
+ *     summary: Cerrar la sesión del usuario
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Account deactivated successfully
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Server error
+ *         description: Sesión cerrada exitosamente
  */
+router.get('/logout', protect, logout);
 
+/**
+ * @swagger
+ * /api/auth/desactivar:
+ *   delete:
+ *     summary: Desactivar la cuenta del usuario (acción destructiva)
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cuenta desactivada exitosamente
+ */
+router.delete('/desactivar', protect, desactivarCuenta);
+
+
+// He eliminado la ruta duplicada /perfil que apuntaba a getMe
+// He eliminado las rutas duplicadas sin protección
 
 module.exports = router;

@@ -1,23 +1,36 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+ import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { message } from 'antd';
 
-const AuthForms: React.FC = () => {
+ const AuthForms: React.FC = () => {
+   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { login, register, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    let result;
     if (isLogin) {
-      await login(email, password);
+      result = await login(email, password);
     } else {
-      await register(email, password, name);
+      result = await register(email, password, name);
+    }
+
+    if (result.success) {
+      message.success(result.message);
+      navigate('/'); // Redirigir a la página principal
+    } else {
+      message.error(result.message);
     }
   };
 
@@ -57,14 +70,24 @@ const AuthForms: React.FC = () => {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Contraseña</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="********"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOffIcon className="h-5 w-5 text-gray-500" /> : <EyeIcon className="h-5 w-5 text-gray-500" />}
+              </Button>
+            </div>
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Cargando...' : (isLogin ? 'Iniciar Sesión' : 'Registrarse')}

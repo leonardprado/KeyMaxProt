@@ -12,9 +12,6 @@ const express = require('express');
  
  const router = express.Router(); 
  
- // Todas las rutas aquí están protegidas, requieren un usuario logueado 
- router.use(protect); 
- 
  /**
  * @swagger
  * /api/vehicles:
@@ -26,7 +23,7 @@ const express = require('express');
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
- *       content:
+ *       content: 
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/VehicleInput'
@@ -43,7 +40,7 @@ const express = require('express');
  *         description: Unauthorized
  */
 router.route('/')
-  .post(registerVehicle); 
+  .post(protect, registerVehicle);
  
  /**
  * @swagger
@@ -66,7 +63,7 @@ router.route('/')
  *       401:
  *         description: Unauthorized
  */
-router.get('/my-vehicles', getMyVehicles); 
+router.get('/my-vehicles', protect, getMyVehicles);
  
  /**
  * @swagger
@@ -149,9 +146,9 @@ router.get('/my-vehicles', getMyVehicles);
  *         description: Vehicle not found
  */
 router.route('/:id')
-  .get(getVehicle)
-  .put(updateVehicle)
-  .delete(deleteVehicle); 
+  .get(protect, getVehicle)
+  .put(protect, updateVehicle)
+  .delete(protect, deleteVehicle);
  
  /**
  * @swagger
@@ -197,6 +194,6 @@ router.route('/:id')
  *       404:
  *         description: Vehicle not found
  */
-router.get('/:id/recommendations', getVehicleRecommendations);
+router.get('/:id/recommendations', protect, getVehicleRecommendations);
 
  module.exports = router;

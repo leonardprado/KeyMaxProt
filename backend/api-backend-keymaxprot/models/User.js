@@ -1,12 +1,33 @@
 const mongoose = require('mongoose');
-
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    role: { type: String, enum: ['user', 'admin', 'tecnico'], default: 'user' },
+   username: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    password: { type: String, required: true, select: false },
+    isVerified: { type: Boolean, default: false },
+    isAdmin: { type: Boolean, default: false },
+    isTecnico: { type: Boolean, default: false },
+    isSuperAdmin: { type: Boolean, default: false },
+    // --- TOKENS PARA PROCESOS ESPECÍFICOS ---
+    verificationToken: String,       
+    // Para verificar el email
+    verificationTokenExpires: Date,
+    resetPasswordToken: String,          
+    // Para resetear la contraseña
+    resetPasswordExpire: Date,
+    status: {
+      type: String,
+      enum: ['pending_verification', 'active', 'suspended', 'banned', 'deleted'],
+      default: 'pending_verification'
+    },
+   
+     role: { 
+      type: String, 
+      enum: ['user', 'admin', 'tecnico', 'shop_owner', 'superadmin'], 
+      default: 'user' 
+    },
     createdAt: { type: Date, default: Date.now },
     fcm_token: {
         type: String,
@@ -54,9 +75,13 @@ userSchema.pre('save', async function(next) {
     next();
 });
 
-// Compare user password
-userSchema.methods.comparePassword = async function(enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
+
+
+// Generate JWT token
+userSchema.methods.getSignedJwtToken = function() {
+    return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRE
+    });
 };
 
 module.exports = mongoose.model('User', userSchema);

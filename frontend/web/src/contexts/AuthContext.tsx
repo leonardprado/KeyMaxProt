@@ -21,8 +21,8 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, name: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  register: (email: string, password: string, name: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
   isAuthenticated: boolean;
@@ -43,48 +43,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem('keymax_user');
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser.user); // Assuming the stored object has a 'user' property
+        setUser(parsedUser);
       } catch (error) {
         console.error('Error parsing stored user:', error);
-        localStorage.removeItem('user');
+        localStorage.removeItem('keymax_user');
       }
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true);
     try {
       const data = await authService.login({ email, password });
       if (data.user) {
         setUser(data.user);
-        return true;
+        localStorage.setItem('keymax_user', JSON.stringify(data.user));
+        return { success: true, message: 'Inicio de sesión exitoso.' };
       }
-      return false;
-    } catch (error) {
+      return { success: false, message: 'Credenciales inválidas.' };
+    } catch (error: any) {
       console.error('Login failed:', error);
-      return false;
+      return { success: false, message: error.response?.data?.error || 'Error al iniciar sesión.' };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (email: string, password: string, name: string): Promise<boolean> => {
+  const register = async (email: string, password: string, name: string): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true);
     try {
       const data = await authService.register({ email, password, name });
       if (data.user) {
         setUser(data.user);
-        return true;
+        localStorage.setItem('keymax_user', JSON.stringify(data.user));
+        return { success: true, message: 'Registro exitoso. ¡Bienvenido!' };
       }
-      return false;
-    } catch (error) {
+      return { success: false, message: 'Error al registrar usuario.' };
+    } catch (error: any) {
       console.error('Registration failed:', error);
-      return false;
+      return { success: false, message: error.response?.data?.error || 'Error al registrar usuario.' };
     } finally {
       setIsLoading(false);
     }
@@ -93,6 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     authService.logout();
     setUser(null);
+    localStorage.removeItem('keymax_user');
   };
 
   const updateProfile = async (data: Partial<User>): Promise<boolean> => {
