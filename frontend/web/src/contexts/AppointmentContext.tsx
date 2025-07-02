@@ -179,9 +179,9 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const fetchServices = async () => {
-          console.log('Fetching services from:', `${API_BASE_URL}/services`);
+          console.log('Fetching services from:', `${API_BASE_URL}/service-catalog`);
           try {
-            const response = await axios.get(`${API_BASE_URL}/services`);
+            const response = await axios.get(`${API_BASE_URL}/service-catalog`);
             console.log('Raw services response:', response.data);
             console.log('Services fetched successfully:', response.data.servicios);
             const transformedServices = response.data.servicios.map((service: any) => ({

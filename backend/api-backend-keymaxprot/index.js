@@ -1,4 +1,4 @@
-// backend/index.js (VERSIÓN FINAL, LIMPIA Y CORREGIDA)
+
 
 // 1. Cargar las variables de entorno PRIMERO que cualquier otra cosa.
 require('dotenv').config();
