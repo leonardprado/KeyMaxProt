@@ -6,19 +6,33 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { Pagination } from 'antd'; // Importa Pagination de antd
 
 const ShopListPage = () => {
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Estado para la página actual
+  const [pageSize] = useState(10); // Número de talleres por página (pageSize)
+  const [totalItems, setTotalItems] = useState(0); // Estado para el total de talleres (total)
+  // Puedes añadir estados para los filtros aquí
   const { toast } = useToast();
 
   const fetchShops = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.get('/api/shops');
-      setShops(response.data);
+      // Añade los parámetros de query a la llamada de la API
+      const response = await apiClient.get('/api/shops', {
+        params: {
+          page: currentPage,
+          limit: pageSize,
+          // Añade aquí los parámetros de filtro si los implementas
+          // ...filters,
+        },
+      });
+      setShops(response.data.data); // Asumiendo que los datos paginados están en response.data.data
+      setTotalItems(response.data.totalDocs); // Asumiendo que el total está en response.data.totalDocs
     } catch (error) {
       console.error('Error fetching shops:', error);
       setError('Error al cargar los talleres.');
@@ -34,7 +48,7 @@ const ShopListPage = () => {
 
   useEffect(() => {
     fetchShops();
-  }, []);
+  }, [currentPage]); // Añade currentPage como dependencia
 
   const handleVerifyChange = async (shopId, isVerified) => {
     try {
@@ -120,6 +134,15 @@ const ShopListPage = () => {
                 ))}
               </tbody>
             </table>
+            {/* Aquí se podría añadir un componente de paginación */}
+            <div className="mt-4 flex justify-center">
+              <Pagination
+                current={currentPage}
+                pageSize={pageSize}
+                total={totalItems}
+                onChange={handlePageChange}
+              />
+            </div>
           </div>
         )}
       </div>

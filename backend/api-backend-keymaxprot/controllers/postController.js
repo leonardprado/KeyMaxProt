@@ -7,7 +7,14 @@ const ErrorResponse = require('../utils/errorResponse');
 // @route   GET /api/posts
 // @access  Public
 exports.getPosts = asyncHandler(async (req, res, next) => {
-  const posts = await Post.find().populate('user', 'name').sort({ createdAt: -1 });
+  const features = new APIFeatures(Post.find().populate('user', 'name'), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const posts = await features.query;
+
   res.status(200).json({ success: true, count: posts.length, data: posts });
 });
 

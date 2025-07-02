@@ -54,10 +54,7 @@ exports.getMensajesConversacion = asyncHandler(async (req, res, next) => {
 
   // Verificar que el usuario sea participante de la conversación
   if (!conversacion.participantes.includes(req.user.id)) {
-    return res.status(403).json({
-      success: false,
-      message: 'No autorizado para ver esta conversación'
-    });
+    return next(new ErrorResponse('No autorizado para ver esta conversación', 403));
   }
 
   const features = new APIFeatures(Message.find({ conversacionId })
@@ -113,18 +110,12 @@ exports.destacarMensaje = asyncHandler(async (req, res, next) => {
   const mensaje = await Message.findById(req.params.id);
 
   if (!mensaje) {
-    return res.status(404).json({
-      success: false,
-      message: 'Mensaje no encontrado'
-    });
+    return next(new ErrorResponse('Mensaje no encontrado', 404));
   }
 
   // Verificar que el usuario sea el receptor del mensaje
   if (mensaje.receptor.toString() !== req.user.id) {
-    return res.status(403).json({
-      success: false,
-      message: 'No autorizado para destacar este mensaje'
-    });
+    return next(new ErrorResponse('No autorizado para destacar este mensaje', 403));
   }
 
   mensaje.destacado = !mensaje.destacado;
@@ -141,18 +132,12 @@ exports.archivarConversacion = asyncHandler(async (req, res, next) => {
   const conversacion = await Conversation.findById(req.params.id);
 
   if (!conversacion) {
-    return res.status(404).json({
-      success: false,
-      message: 'Conversación no encontrada'
-    });
+    return next(new ErrorResponse('Conversación no encontrada', 404));
   }
 
   // Verificar que el usuario sea participante de la conversación
   if (!conversacion.participantes.includes(req.user.id)) {
-    return res.status(403).json({
-      success: false,
-      message: 'No autorizado para archivar esta conversación'
-    });
+    return next(new ErrorResponse('No autorizado para archivar esta conversación', 403));
   }
 
   // Actualizar configuración del usuario

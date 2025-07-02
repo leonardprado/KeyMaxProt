@@ -3,11 +3,14 @@ import axios from 'axios';
 import ImprovedNavigation from '../components/ImprovedNavigation';
 import ProductCard from '../components/ProductCard';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast'; // Importar useToast
 
 const FeaturedProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const { toast } = useToast(); // Usar el hook useToast
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -16,9 +19,22 @@ const FeaturedProductsPage = () => {
       try {
         const res = await axios.get('/api/products?isFeatured=true&onSale=true');
         setProducts(res.data.data);
-      } catch (err) {
+        // Opcional: notificar éxito solo si hay productos
+        if (res.data.data.length > 0) {
+           toast({
+             title: "Productos cargados",
+             description: "Los productos destacados y en promoción se han cargado correctamente.",
+           });
+        }
+      } catch (err: any) {
         console.error('Error fetching featured products:', err);
-        setError('Error al cargar los productos destacados.');
+        const errorMessage = err.response?.data?.message || 'Error al cargar los productos destacados.';
+        setError(errorMessage);
+        toast({
+          title: "Error al cargar productos",
+          description: errorMessage,
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }

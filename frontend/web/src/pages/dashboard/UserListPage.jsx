@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Edit } from 'lucide-react';
+import { Pagination } from 'antd'; // Importa Pagination de antd
 
 const UserListPage = () => {
   const [users, setUsers] = useState([]);
@@ -19,14 +20,27 @@ const UserListPage = () => {
     role: '',
     status: '',
   });
+  const [currentPage, setCurrentPage] = useState(1); // Estado para la página actual
+  const [pageSize] = useState(10); // Número de usuarios por página (pageSize)
+  const [totalItems, setTotalItems] = useState(0); // Estado para el total de usuarios (total)
+  // Puedes añadir estados para los filtros aquí
   const { toast } = useToast();
 
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.get('/api/users');
-      setUsers(response.data.data.users);
+      // Añade los parámetros de query a la llamada de la API
+      const response = await apiClient.get('/api/users', {
+        params: {
+          page: currentPage,
+          limit: pageSize,
+          // Añade aquí los parámetros de filtro si los implementas
+          // ...filters,
+        },
+      });
+      setUsers(response.data.data.users); // Asumiendo que los datos paginados están en response.data.data.users
+      setTotalItems(response.data.totalDocs); // Asumiendo que el total está en response.data.totalDocs
     } catch (error) {
       console.error('Error fetching users:', error);
       setError('Error al cargar los usuarios.');
@@ -42,7 +56,7 @@ const UserListPage = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [currentPage]); // Añade currentPage como dependencia
 
   const handleInputChange = (id, value) => {
     setFormData(prev => ({
@@ -134,10 +148,19 @@ const UserListPage = () => {
                 ))}
               </tbody>
             </table>
+            {/* Aquí se podría añadir un componente de paginación */}
+            <div className="mt-4 flex justify-center">
+              <Pagination
+                current={currentPage}
+                pageSize={pageSize}
+                total={totalItems}
+                onChange={setCurrentPage}
+              />
+            </div>
           </div>
-        )}
-      </div>
-
+        )
+      }</div>
+      
       {editingUser && (
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent>

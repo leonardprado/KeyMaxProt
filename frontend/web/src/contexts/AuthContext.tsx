@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import authService from '../services/authService';
+import { useToast } from '@/hooks/use-toast';
 
 export interface User {
   id: string;
@@ -41,6 +42,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const storedUser = localStorage.getItem('keymax_user');
@@ -63,12 +65,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data.user) {
         setUser(data.user);
         localStorage.setItem('keymax_user', JSON.stringify(data.user));
-        return { success: true, message: 'Inicio de sesión exitoso.' };
+        toast({
+          title: 'Éxito',
+          description: 'Inicio de sesión exitoso.',
+          variant: 'default',
+        });
+        return { success: true };
       }
+      toast({
+        title: 'Error',
+        description: 'Credenciales inválidas.',
+        variant: 'destructive',
+      });
       return { success: false, message: 'Credenciales inválidas.' };
     } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Error al iniciar sesión.';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       console.error('Login failed:', error);
-      return { success: false, message: error.response?.data?.error || 'Error al iniciar sesión.' };
+      return { success: false, message: errorMessage };
     } finally {
       setIsLoading(false);
     }
@@ -81,12 +99,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data.user) {
         setUser(data.user);
         localStorage.setItem('keymax_user', JSON.stringify(data.user));
-        return { success: true, message: 'Registro exitoso. ¡Bienvenido!' };
+        toast({
+          title: 'Éxito',
+          description: 'Registro exitoso. ¡Bienvenido!',
+          variant: 'default',
+        });
+        return { success: true };
       }
+      toast({
+        title: 'Error',
+        description: 'Error al registrar usuario.',
+        variant: 'destructive',
+      });
       return { success: false, message: 'Error al registrar usuario.' };
     } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Error al registrar usuario.';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       console.error('Registration failed:', error);
-      return { success: false, message: error.response?.data?.error || 'Error al registrar usuario.' };
+      return { success: false, message: errorMessage };
     } finally {
       setIsLoading(false);
     }
@@ -102,15 +136,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return false;
     
     setIsLoading(true);
-    
-    // Simular llamada a API
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const updatedUser = { ...user, ...data };
-    setUser(updatedUser);
-    localStorage.setItem('keymax_user', JSON.stringify(updatedUser));
-    setIsLoading(false);
-    return true;
+    try {
+      // Llamada real a la API para actualizar el perfil
+      const updatedUserData = await authService.updateProfile(user.id, data); // Assuming authService has an updateProfile method
+
+      // Update user in state and localStorage
+      const updatedUser = { ...user, ...updatedUserData };
+      setUser(updatedUser);
+      localStorage.setItem('keymax_user', JSON.stringify(updatedUser));
+
+      setIsLoading(false);
+      return true;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Error al actualizar el perfil.';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+      console.error('Error updating profile:', error);
+      setIsLoading(false);
+      return false;
+    }
   };
 
   const isAuthenticated = !!user;

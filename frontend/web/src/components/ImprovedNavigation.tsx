@@ -73,6 +73,8 @@ const ImprovedNavigation = () => {
               </span>
             )}
           </button>
+          {/* ModeToggle for Desktop */}
+          <ModeToggle />
           {isAuthenticated ? (
             <div className="flex items-center space-x-2">
               <Link to="/profile"><Button variant="outline" size="sm"><User className="w-4 h-4 mr-2" />{user?.name || 'Perfil'}</Button></Link>
@@ -125,6 +127,7 @@ const ImprovedNavigation = () => {
             <Calendar className="w-6 h-6 mb-1" />
             Mis Citas
           </Link>
+          {/* ModeToggle for Mobile */}
           <ModeToggle />
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Modal, message } from 'antd';
+import { Table, Button, Space, Modal, message, Pagination } from 'antd'; // Importa Pagination si no está ya
 import { EditOutlined, DeleteOutlined, PlusOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import axiosInstance from '../../../api/axiosConfig';
 import { Link } from 'react-router-dom';
@@ -9,23 +9,41 @@ import { Link } from 'react-router-dom';
 const ProductListPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const [currentPage, setCurrentPage] = useState(1); // Estado para la página actual
+  const [pageSize] = useState(10); // Número de productos por página (pageSize)
+  const [totalItems, setTotalItems] = useState(0); // Estado para el total de productos (total)
+  // Puedes añadir estados para los filtros aquí, por ejemplo:
+  // const [filters, setFilters] = useState({});
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [currentPage]); // Añade currentPage como dependencia
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get('/products');
-      setProducts(response.data);
+      // Añade los parámetros de query a la llamada de la API
+      const response = await axiosInstance.get('/products', {
+        params: {
+          page: currentPage,
+          limit: pageSize,
+          // Añade aquí los parámetros de filtro si los implementas:
+          // ...filters,
+        },
+      });
+      setProducts(response.data.data); // Asumiendo que los datos paginados están en response.data.data
+      setTotalItems(response.data.totalDocs); // Asumiendo que el total está en response.data.totalDocs
     } catch (error) {
       message.error('Error al cargar los productos.');
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Función para manejar el cambio de página
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   const handleDeleteProduct = async (productId) => {
@@ -105,7 +123,16 @@ const ProductListPage = () => {
         dataSource={products}
         rowKey="_id"
         loading={loading}
-        pagination={{ pageSize: 10 }}
+        // Configura la paginación para ser controlada por el backend
+        pagination={{
+          current: currentPage,
+          pageSize: pageSize,
+          total: totalItems,
+          onChange: handlePageChange, // Llama a handlePageChange al cambiar de página
+          // Puedes añadir opciones para cambiar el tamaño de página si lo deseas
+          // showSizeChanger: true,
+          // onShowSizeChange: (current, size) => setPageSize(size),
+        }}
       />
 
 

@@ -16,7 +16,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useCart } from '@/contexts/CartContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import apiClient from '../api/axiosConfig'; // Asegúrate que la ruta sea correcta
-import { Spin, Alert } from 'antd'; // Usaremos Spin y Alert para los estados de carga y error
+import { Spin, Alert } from 'antd'; // Usaremos Spin y Alert para los estados de carga y errores
+import { useToast } from '@/hooks/use-toast'; // Importar useToast
+import AddReviewForm from '../components/AddReviewForm'; // Importa el componente del formulario
 
 const ProductDetail = () => {
   const { id } = useParams(); // Obtiene el ID del producto de la URL
@@ -26,6 +28,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState<any>(null); // 'any' temporalmente, se puede tipar mejor
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Estados que ya tenías para la UI
   const [quantity, setQuantity] = useState(1);
@@ -38,7 +41,13 @@ const ProductDetail = () => {
   // --- LÓGICA NUEVA: OBTENER DATOS DE LA API ---
   useEffect(() => {
     if (!id) {
-      setError('ID de producto no válido.');
+      const errorMessage = 'ID de producto no válido.';
+      setError(errorMessage);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       setLoading(false);
       return;
     }
@@ -49,8 +58,14 @@ const ProductDetail = () => {
       try {
         const response = await apiClient.get(`/products/${id}`);
         setProduct(response.data.data);
-      } catch (err) {
-        setError('Producto no encontrado o error al cargar.');
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.message || 'Producto no encontrado o error al cargar.';
+        setError(errorMessage);
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
         console.error(err);
       } finally {
         setLoading(false);
@@ -58,7 +73,7 @@ const ProductDetail = () => {
     };
 
     fetchProduct();
-  }, [id]); // Se ejecuta cada vez que el ID de la URL cambia
+  }, [id, toast]); // Se ejecuta cada vez que el ID de la URL cambia
 
   // --- LÓGICAS DE LA UI (la mayoría se mantienen igual) ---
 
@@ -75,6 +90,11 @@ const ProductDetail = () => {
     if (product) {
       // La lógica de tu CartContext necesita ser compatible con el objeto 'product' de la API
       addToCart({ ...product, id: product._id });
+      toast({
+        title: 'Éxito',
+        description: 'Producto añadido al carrito.',
+        variant: 'default',
+      });
     }
   };
 
@@ -97,7 +117,7 @@ const ProductDetail = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center text-center">
-        <Alert message="Error" description={error} type="error" showIcon />
+        <p className="text-red-500 text-lg">{error}</p>
         <Button onClick={() => navigate('/marketplace')} className="mt-4">
           Volver al Marketplace
         </Button>
@@ -122,8 +142,37 @@ const ProductDetail = () => {
   
   const productImages = product.images && product.images.length > 0 ? product.images : ['https://via.placeholder.com/400'];
   const productFeatures = product.features || [];
-  // La API de reseñas se podría integrar aquí de forma similar
-  const reviews = product.reviews || []; 
+  // Lógica para obtener reseñas
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
+
+  // Lógica para obtener reseñas
+  const fetchReviews = async () => {
+    if (!id) return;
+    setReviewsLoading(true);
+    setReviewsError(null);
+    try {
+      // Asumiendo que tienes una ruta en el backend como /api/reviews/item/:itemType/:itemId
+      const response = await apiClient.get(`/api/reviews/item/Product/${id}`);
+      setReviews(response.data.data);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Error al cargar las reseñas.';
+      setReviewsError(errorMessage);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+      console.error(err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, [id, toast]); // Se ejecuta cuando cambia el ID del producto 
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -278,7 +327,47 @@ const ProductDetail = () => {
               <p className="text-muted-foreground">{product.description}</p>
             </CardContent>
           </Card>
-        </div>
+      </div>
+    </div>
+
+        {/* Sección de Reseñas */}
+        <div className="mt-16 space-y-8">
+          <h2 className="text-2xl font-bold">Reseñas de Clientes</h2>
+
+          {reviewsLoading && <Spin tip="Cargando reseñas..." />}
+          {reviewsError && <Alert message="Error" description={reviewsError} type="error" showIcon />}
+
+          {!reviewsLoading && !reviewsError && (
+            reviews.length > 0 ? (
+              <div className="space-y-6">
+                {reviews.map((review: { _id: string; rating: number; user: { name: string } | null; createdAt: string; comment: string }) => (
+                  <Card key={review._id}>
+                    <CardContent className="pt-6">
+                      <div className="flex items-center mb-2">
+                        <div className="flex items-center mr-2">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300'}`}
+                            />
+                          ))}
+                        </div>
+                        <span className="font-semibold">{review.user ? review.user.name : 'Usuario Desconocido'}</span>
+                      </div>
+                      <p className="text-muted-foreground text-sm mb-2">{new Date(review.createdAt).toLocaleDateString()}</p>
+                      <p>{review.comment}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">Aún no hay reseñas para este producto. ¡Sé el primero en dejar una!</p>
+            )
+          )}
+
+          {/* Formulario para añadir reseña */}
+          <AddReviewForm itemType="Product" itemId={id} onReviewAdded={fetchReviews} />
+
       </div>
     </div>
   );

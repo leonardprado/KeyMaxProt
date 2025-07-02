@@ -78,31 +78,38 @@ const AppointmentPage: React.FC = () => {
     }
 
     if (selectedService && selectedDate && selectedTime && contactInfo.name && contactInfo.email && contactInfo.phone) {
-      const success = await createAppointment({
-        userId: user.id,
-        serviceId: selectedService._id,
-        date: selectedDate,
-        time: selectedTime,
-        status: 'pending',
-        customerInfo: {
-          name: contactInfo.name,
-          email: contactInfo.email,
-          phone: contactInfo.phone,
-          address: contactInfo.address || '',
-        },
-        notes: '',
-      });
+      try {
+        const success = await createAppointment({
+          userId: user.id,
+          serviceId: selectedService._id,
+          date: selectedDate,
+          time: selectedTime,
+          status: 'pending',
+          customerInfo: {
+            name: contactInfo.name,
+            email: contactInfo.email,
+            phone: contactInfo.phone,
+            address: contactInfo.address || '',
+          },
+          notes: '',
+        });
 
-      if (success) {
-        toast.success('Cita reservada con éxito!');
-        setCurrentStep(1); // Reset for new appointment
-        setSelectedService(null);
-        setSelectedDate('');
-        setSelectedTime('');
-        setContactInfo({ name: '', email: '', phone: '', address: '' });
-        navigate('/appointments'); // Redirect to user's appointments
-      } else {
-        toast.error('Error al reservar la cita. Inténtalo de nuevo.');
+        if (success) {
+          toast.success('Cita reservada con éxito!');
+          setCurrentStep(1); // Reset for new appointment
+          setSelectedService(null);
+          setSelectedDate('');
+          setSelectedTime('');
+          setContactInfo({ name: '', email: '', phone: '', address: '' });
+          navigate('/appointments'); // Redirect to user's appointments
+        } else {
+          toast.error('Error al reservar la cita. Por favor, verifica la disponibilidad e inténtalo de nuevo.');
+        }
+      } catch (error: any) {
+        console.error('Error creating appointment:', error);
+        // Improved error handling based on backend response structure
+        const errorMessage = error.response?.data?.message || 'Ocurrió un error inesperado al reservar la cita.';
+        toast.error(errorMessage);
       }
     } else {
       toast.error('Por favor, completa todos los campos requeridos.');

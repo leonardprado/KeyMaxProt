@@ -6,6 +6,7 @@ import Comment from '../components/Comment';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ThumbsUp, Eye, MessageSquare, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const PostPage = () => {
   const { id } = useParams();
@@ -16,6 +17,7 @@ const PostPage = () => {
   const [loadingComments, setLoadingComments] = useState(true);
   const [errorPost, setErrorPost] = useState(null);
   const [errorComments, setErrorComments] = useState(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -25,8 +27,13 @@ const PostPage = () => {
         const res = await axios.get(`/api/posts/${id}`);
         setPost(res.data.data);
       } catch (err) {
-        console.error(err);
-        setErrorPost('Error al cargar la publicación.');
+        const errorMessage = err.response?.data?.message || 'Error al cargar la publicación.';
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        setErrorPost(errorMessage);
       } finally {
         setLoadingPost(false);
       }
@@ -38,8 +45,13 @@ const PostPage = () => {
         const res = await axios.get(`/api/posts/${id}/comments`);
         setComments(res.data.data);
       } catch (err) {
-        console.error(err);
-        setErrorComments('Error al cargar los comentarios.');
+        const errorMessage = err.response?.data?.message || 'Error al cargar los comentarios.';
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        setErrorComments(errorMessage);
       } finally {
         setLoadingComments(false);
       }
@@ -54,9 +66,18 @@ const PostPage = () => {
       const res = await axios.post(`/api/posts/${id}/comments`, { content: newComment });
       setComments([res.data.data, ...comments]);
       setNewComment('');
+      toast({
+        title: 'Éxito',
+        description: 'Comentario publicado exitosamente.',
+        variant: 'default',
+      });
     } catch (err) {
-      console.error(err);
-      alert('Error al publicar el comentario.');
+      const errorMessage = err.response?.data?.message || 'Error al publicar el comentario.';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     }
   };
 
@@ -64,9 +85,18 @@ const PostPage = () => {
     try {
       const res = await axios.put(`/api/posts/${id}/like`);
       setPost({ ...post, likes: res.data.data });
+      toast({
+        title: 'Éxito',
+        description: '¡Me gusta registrado!',
+        variant: 'default',
+      });
     } catch (err) {
-      console.error(err);
-      alert('Error al dar me gusta.');
+      const errorMessage = err.response?.data?.message || 'Error al dar me gusta.';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     }
   };
 

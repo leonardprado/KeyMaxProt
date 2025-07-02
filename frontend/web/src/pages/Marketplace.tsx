@@ -10,7 +10,7 @@ import { Slider } from '@/components/ui/slider';
 import ProductCard from '../components/ProductCard';
 import ServiceCard from '../components/ServiceCard';
 import { Loader2 } from 'lucide-react';
-import { Alert } from 'antd';
+import { useToast } from '@/hooks/use-toast';
 
 const Marketplace = () => {
   // --- Inicializa los estados SIEMPRE como arrays vacíos ---
@@ -22,6 +22,7 @@ const Marketplace = () => {
   // ... resto de tus estados (searchTerm, etc.)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // --- useEffect para cargar las categorías ---
   useEffect(() => {
@@ -35,7 +36,11 @@ const Marketplace = () => {
         setServiceCategories(serviceRes.data.data || []); // Asegura que sea un array
       } catch (error) {
         console.error('Error fetching categories:', error);
-        // No es un error fatal, la página puede funcionar sin filtros de categoría
+        toast({
+          title: "Error",
+          description: "Error al cargar las categorías.",
+          variant: "destructive",
+        });
       }
     };
     fetchCategories();
@@ -56,9 +61,19 @@ const Marketplace = () => {
         setProducts(productRes.data.data || []);
         setServices(serviceRes.data.data || []); // <-- Accede a .data
         // ... tu lógica de paginación ...
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Error al cargar productos y servicios.');
+        toast({
+          title: "Éxito",
+          description: "Productos y servicios cargados exitosamente.",
+        });
+      } catch (err: any) {
+        console.error('Error fetching data:', err);
+        const errorMessage = err.response?.data?.message || 'Error al cargar productos y servicios.';
+        setError(errorMessage);
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -69,8 +84,28 @@ const Marketplace = () => {
   // Combinar categorías sin duplicados para el <Select>
   const allCategories = [...new Set([...productCategories, ...serviceCategories])];
 
-  if (loading) { /* ... tu JSX de carga ... */ }
-  if (error) { return <Alert message="Error" description={error} type="error" showIcon />; }
+  if (loading) {
+    return (
+      <div>
+        <ImprovedNavigation />
+        <div className="container mx-auto p-8 text-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+          <p className="mt-2 text-gray-600">Cargando productos y servicios...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <ImprovedNavigation />
+        <div className="container mx-auto p-8 text-center text-red-500">
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

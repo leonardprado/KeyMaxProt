@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../api/axiosConfig';
+import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import ImprovedNavigation from '../components/ImprovedNavigation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +19,7 @@ const Blog = () => {
   const [posts, setPosts] = useState<any[]>([]); // <-- Asegúrate de que sea un array
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null); // <-- Tipa el error
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -32,8 +34,14 @@ const Blog = () => {
         setPosts(res.data.data || []); // <-- Usa un fallback a [] para prevenir el error
       } catch (err: any) { // <-- Tipa err para acceder a err.message o err.response
         console.error('Error fetching posts:', err);
-        setError(err.response?.data?.error || err.message || 'Error al cargar las publicaciones del blog.');
+        const errorMessage = err.response?.data?.error || err.message || 'Error al cargar las publicaciones del blog.';
+        setError(errorMessage);
         setPosts([]); // <-- Asegúrate de que sea un array si hay error
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }

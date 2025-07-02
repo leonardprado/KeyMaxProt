@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import ImprovedNavigation from '../ImprovedNavigation'; // Tu barra de navegación
+import Footer from '../Footer'; // Importa el componente Footer
 
 const MainLayout = () => {
   return (
@@ -9,7 +10,7 @@ const MainLayout = () => {
       <main>
         <Outlet /> {/* Aquí se renderizan las páginas hijas */}
       </main>
-      {/* Aquí puedes poner un Footer común */}
+      <Footer /> {/* Añade el componente Footer aquí */}
     </div>
   );
 };

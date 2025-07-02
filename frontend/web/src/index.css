@@ -5,6 +5,7 @@
  
 @layer base {
   :root {
+    /* Colores base de shadcn/ui */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -25,6 +26,55 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+
+    /* Colores personalizados KeyMaxProt */
+    --keymax-blue-50: 228 100% 96%; /* #eef2ff */
+    --keymax-blue-100: 228 100% 94%; /* #e0e7ff */
+    --keymax-blue-200: 229 100% 91%; /* #c3daff */
+    --keymax-blue-300: 230 100% 88%; /* #a7b9ff */
+    --keymax-blue-400: 231 100% 85%; /* #8b9bff */
+    --keymax-blue-500: 233 100% 84%; /* #6f7dff */
+    --keymax-blue-600: 235 100% 83%; /* #5761ff */
+    --keymax-blue-700: 237 100% 82%; /* #3e43ff */
+    --keymax-blue-800: 240 100% 81%; /* #2525ff */
+    --keymax-blue-900: 240 100% 79%; /* #0c07ff */
+    --keymax-blue-950: 240 100% 67%; /* #0805cc */
+
+    --keymax-gray-50: 220 14% 96%; /* #f8f9fa */
+    --keymax-gray-100: 218 11% 93%; /* #e9ecef */
+    --keymax-gray-200: 216 13% 90%; /* #dee2e6 */
+    --keymax-gray-300: 214 13% 86%; /* #ced4da */
+    --keymax-gray-400: 211 14% 78%; /* #adb5bd */
+    --keymax-gray-500: 210 11% 64%; /* #6c757d */
+    --keymax-gray-600: 210 10% 50%; /* #495057 */
+    --keymax-gray-700: 210 9% 40%; /* #343a40 */
+    --keymax-gray-800: 210 8% 28%; /* #212529 */
+    --keymax-gray-900: 210 8% 13%; /* #111827 */
+    --keymax-gray-950: 210 8% 9%; /* #0b101a */
+
+    --keymax-orange-50: 33 100% 97%; /* #fff8f0 */
+    --keymax-orange-100: 33 100% 94%; /* #fff1e0 */
+    --keymax-orange-200: 33 100% 89%; /* #ffe4c4 */
+    --keymax-orange-300: 33 100% 83%; /* #ffd7a8 */
+    --keymax-orange-400: 33 100% 76%; /* #ffc98c */
+    --keymax-orange-500: 33 100% 68%; /* #ffbc70 */
+    --keymax-orange-600: 33 100% 60%; /* #ffae54 */
+    --keymax-orange-700: 33 100% 52%; /* #ff9f38 */
+    --keymax-orange-800: 33 100% 43%; /* #ff911c */
+    --keymax-orange-900: 33 100% 32%; /* #ff8300 */
+    --keymax-orange-950: 33 100% 20%; /* #cc6900 */
+
+    --keymax-yellow-50: 49 100% 96%; /* #fffbeb */
+    --keymax-yellow-100: 47 100% 93%; /* #fff4cd */
+    --keymax-yellow-200: 45 100% 88%; /* #ffeaa8 */
+    --keymax-yellow-300: 43 100% 83%; /* #ffe083 */
+    --keymax-yellow-400: 41 100% 77%; /* #ffd65d */
+    --keymax-yellow-500: 40 100% 71%; /* #ffcc33 */
+    --keymax-yellow-600: 38 100% 63%; /* #ffc200 */
+    --keymax-yellow-700: 38 100% 59%; /* #ffb800 */
+    --keymax-yellow-800: 39 100% 55%; /* #ffa700 */
+    --keymax-yellow-900: 39 100% 47%; /* #ff9100 */
+    --keymax-yellow-950: 39 100% 37%; /* #cc7400 */
   }
  
   .dark {

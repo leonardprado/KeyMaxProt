@@ -3,10 +3,10 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 
 const images = [
-  '/placeholder.svg',
-  '/placeholder.svg',
-  '/placeholder.svg',
-  '/placeholder.svg',
+  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSI6MBXHN6eEvSs2oZJslX0DumAQdez0FCHg&s',
+  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSI6MBXHN6eEvSs2oZJslX0DumAQdez0FCHg&s',
+  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSI6MBXHN6eEvSs2oZJslX0DumAQdez0FCHg&s',
+  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSI6MBXHN6eEvSs2oZJslX0DumAQdez0FCHg&s',
 ];
 
 const Hero = () => {

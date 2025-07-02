@@ -5,6 +5,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import { useDropzone } from 'react-dropzone';
 import apiClient from '../../../api/axiosConfig';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../../../components/ui/use-toast';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -13,6 +14,7 @@ const ProductCreatePage = () => {
   const { control, handleSubmit, formState: { errors } } = useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { toast } = useToast();
   const [uploadedImages, setUploadedImages] = useState([]);
   const navigate = useNavigate();
 
@@ -53,10 +55,19 @@ const ProductCreatePage = () => {
         // Asumiendo que el backend espera que el seller se asocie automáticamente
       };
       await apiClient.post('/products', productData);
-      message.success('Producto creado exitosamente!');
+      toast({
+        title: 'Éxito',
+        description: '¡Producto creado exitosamente!',
+        variant: 'success',
+      });
       navigate('/dashboard/products'); // Redirige a la lista de productos si todo va bien
     } catch (err) {
-      setError(err.response?.data?.error || 'Ocurrió un error al crear el producto.');
+      const errorMessage = err.response?.data?.error || 'Ocurrió un error al crear el producto.';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }

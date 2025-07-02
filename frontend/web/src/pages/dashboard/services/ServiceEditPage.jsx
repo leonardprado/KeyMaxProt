@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, InputNumber, message } from 'antd';
+import { Form, Input, Button, InputNumber } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { useToast } from '../../../../components/ui/use-toast';
+import { useState, useEffect } from 'react';
 
 const ServiceEditPage = () => {
   const [form] = Form.useForm();
@@ -9,6 +11,7 @@ const ServiceEditPage = () => {
   const { serviceId } = useParams();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchService = async () => {
@@ -16,7 +19,12 @@ const ServiceEditPage = () => {
         const response = await axios.get(`/api/services/${serviceId}`);
         form.setFieldsValue(response.data.data); // Ajusta según la estructura de tu API
       } catch (error) {
-        message.error('Error al cargar el servicio.');
+        const errorMessage = error.response?.data?.message || 'Error al cargar el servicio.';
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
         console.error('Error fetching service:', error);
       } finally {
         setFetching(false);
@@ -29,10 +37,19 @@ const ServiceEditPage = () => {
     setLoading(true);
     try {
       await axios.put(`/api/services/${serviceId}`, values);
-      message.success('Servicio actualizado exitosamente.');
+      toast({
+        title: 'Éxito',
+        description: 'Servicio actualizado exitosamente.',
+        variant: 'success',
+      });
       navigate('/dashboard/services');
     } catch (error) {
-      message.error('Error al actualizar el servicio.');
+      const errorMessage = error.response?.data?.message || 'Error al actualizar el servicio.';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       console.error('Error updating service:', error);
     } finally {
       setLoading(false);

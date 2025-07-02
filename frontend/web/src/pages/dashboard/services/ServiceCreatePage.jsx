@@ -1,21 +1,33 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, InputNumber, message } from 'antd';
+import { Form, Input, Button, InputNumber } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useToast } from '../../../../components/ui/use-toast';
+import { useState } from 'react';
 
 const ServiceCreatePage = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const onFinish = async (values) => {
     setLoading(true);
     try {
       await axios.post('/api/services', values); // Asume que tienes un endpoint para crear servicios
-      message.success('Servicio creado exitosamente.');
+      toast({
+        title: 'Éxito',
+        description: 'Servicio creado exitosamente.',
+        variant: 'success',
+      });
       navigate('/dashboard/services');
     } catch (error) {
-      message.error('Error al crear el servicio.');
+      const errorMessage = error.response?.data?.message || 'Error al crear el servicio.';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       console.error('Error creating service:', error);
     } finally {
       setLoading(false);

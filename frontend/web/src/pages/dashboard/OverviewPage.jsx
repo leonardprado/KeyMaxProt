@@ -10,11 +10,14 @@ import SummaryCard from '../../components/dashboard/SummaryCard';
 import SalesChart from '../../components/dashboard/SalesChart';
 import CategoryChart from '../../components/dashboard/CategoryChart';
 import UserRoleChart from '../../components/dashboard/UserRoleChart';
+import RecentAppointments from '../../components/dashboard/RecentAppointments'; // Importar el componente de citas recientes
 
 const OverviewPage = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [recentAppointments, setRecentAppointments] = useState([]);
 
   useEffect(() => {
     const fetchOverviewStats = async () => {
@@ -28,7 +31,20 @@ const OverviewPage = () => {
         setLoading(false);
       }
     };
+
+    const fetchRecentAppointments = async () => {
+      try {
+        const response = await apiClient.get('/appointments/recent?limit=5'); // Obtener las 5 citas más recientes
+        setRecentAppointments(response.data.data);
+      } catch (err) {
+        console.error('Error fetching recent appointments:', err);
+        // No establecer error fatal, ya que es un componente secundario
+      }
+    };
+
     fetchOverviewStats();
+    fetchRecentAppointments(); // Llamar a la nueva función de obtención de citas
+
   }, []);
 
   if (loading) {
@@ -75,6 +91,12 @@ const OverviewPage = () => {
       <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
         <Col xs={24}>
            <CategoryChart />
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
+        <Col xs={24}>
+          <RecentAppointments appointments={recentAppointments} /> {/* Pasar las citas recientes al componente */}
         </Col>
       </Row>
     </div>

@@ -5,13 +5,14 @@ import apiClient from '../api/axiosConfig'; // <-- Usa tu apiClient estandarizad
 import ImprovedNavigation from '../components/ImprovedNavigation';
 import ServiceCard from '../components/ServiceCard';
 import { Loader2 } from 'lucide-react';
-import { Alert } from 'antd'; // Usaremos Alert para los errores
+import { useToast } from '@/hooks/use-toast';
 
 const ServicesPage = () => {
   // Inicializa el estado como un array vacío, lo cual es correcto.
   const [services, setServices] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -28,13 +29,25 @@ const ServicesPage = () => {
         } else {
           // Si la respuesta no es lo que esperamos, lo manejamos como un error
           console.error("La respuesta de la API no tiene el formato esperado:", res.data);
-          setError('Error al procesar los datos de los servicios.');
+          const errorMessage = 'Error al procesar los datos de los servicios.';
+          setError(errorMessage);
           setServices([]); // Nos aseguramos que services sea un array
+          toast({
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive",
+          });
         }
 
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching services:', err);
-        setError('Error al cargar los servicios.');
+        const errorMessage = err.response?.data?.message || 'Error al cargar los servicios.';
+        setError(errorMessage);
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -45,8 +58,28 @@ const ServicesPage = () => {
   // El resto de tu JSX ya está bien, no necesita cambios.
   // Tu renderizado condicional ya maneja el caso de array vacío correctamente.
 
-  if (loading) { /* ... tu JSX de carga ... */ }
-  if (error) { return <Alert message="Error" description={error} type="error" showIcon />; }
+  if (loading) {
+    return (
+      <div>
+        <ImprovedNavigation />
+        <div className="container mx-auto p-8 text-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+          <p className="mt-2 text-gray-600">Cargando servicios...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <ImprovedNavigation />
+        <div className="container mx-auto p-8 text-center text-red-500">
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

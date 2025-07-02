@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Input, Button, Form, InputNumber, Select, Card, Spin, Alert, Typography, Upload } from 'antd';
+import { Input, Button, Form, InputNumber, Select, Card, Spin, Typography, Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { useDropzone } from 'react-dropzone';
 import apiClient from '../../../api/axiosConfig';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useToast } from '../../../../components/ui/use-toast';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -15,6 +16,7 @@ const ProductEditPage = () => {
   const [error, setError] = useState(null);
   const [uploadedImages, setUploadedImages] = useState([]);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // --- Lógica de Subida de Imágenes a Cloudinary ---
   const onDrop = async (acceptedFiles) => {
@@ -33,8 +35,18 @@ const ProductEditPage = () => {
       const responses = await Promise.all(uploadPromises);
       const imageUrls = responses.map(res => res.secure_url);
       setUploadedImages(prev => [...prev, ...imageUrls]);
+      toast({
+        title: 'Éxito',
+        description: 'Imágenes subidas exitosamente.',
+        variant: 'success',
+      });
     } catch (err) {
-      setError('Error al subir las imágenes.');
+      const errorMessage = err.message || 'Error al subir las imágenes.';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -52,7 +64,12 @@ const ProductEditPage = () => {
         reset(productData);
         setUploadedImages(productData.images || []);
       } catch (err) {
-        setError('Error al cargar el producto.');
+        const errorMessage = err.response?.data?.error || 'Error al cargar el producto.';
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
       } finally {
         setLoading(false);
       }
@@ -70,10 +87,19 @@ const ProductEditPage = () => {
         images: uploadedImages,
       };
       await apiClient.put(`/products/${productId}`, productData);
-      message.success('Producto actualizado exitosamente!');
+      toast({
+        title: 'Éxito',
+        description: '¡Producto actualizado exitosamente!',
+        variant: 'success',
+      });
       navigate('/dashboard/products');
     } catch (err) {
-      setError(err.response?.data?.error || 'Ocurrió un error al actualizar el producto.');
+      const errorMessage = err.response?.data?.error || 'Ocurrió un error al actualizar el producto.';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -82,7 +108,6 @@ const ProductEditPage = () => {
   return (
     <Spin spinning={loading}>
       <Title level={2}>Editar Producto</Title>
-      {error && <Alert message="Error" description={error} type="error" showIcon style={{ marginBottom: '16px' }} />}
        
       <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
         <Card title="Información Básica" style={{ marginBottom: '16px' }}>

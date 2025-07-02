@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import axios from 'axios';
+import { useToast } from '@/hooks/use-toast'; // Importar useToast
 
 const API_BASE_URL = 'http://localhost:3001/api'; // Asegúrate de que esta URL sea correcta para tu backend
 
@@ -51,14 +52,17 @@ interface AppointmentContextType {
   selectedTime: string;
   currentStep: number;
   contactInfo: ContactInfo;
+  isLoading: boolean; // Añadir estado de carga
+  error: string | null; // Añadir estado de error
   setSelectedService: (service: Service | null) => void;
   setSelectedDate: (date: string) => void;
   setSelectedTime: (time: string) => void;
   setCurrentStep: (step: number) => void;
   setContactInfo: (info: ContactInfo) => void;
   getAvailableSlots: (date: string) => Promise<TimeSlot[]>;
-  createAppointment: (appointmentData: Omit<Appointment, '_id' | 'createdAt'>) => Promise<boolean>;
-  getUserAppointments: (userId: string) => Promise<Appointment[]>;
+  createAppointment: (appointmentData: Omit<Appointment, '_id' | 'createdAt' | 'status' | 'customerInfo' | 'notes'> & { customerInfo: ContactInfo, status?: 'pending' | 'confirmed' | 'completed' | 'cancelled', notes?: string }) => Promise<boolean>;
+  getUserAppointments: () => Promise<Appointment[]>;
+  getServiceCatalog: () => Promise<Service[]>;
 
 }
 
@@ -122,7 +126,6 @@ const mockServices: Service[] = [
 ];
 
 export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
-  const [services, setServices] = useState<Service[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -135,50 +138,125 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
     phone: '',
     address: ''
   });
+  const [isLoading, setIsLoading] = useState(false); // Inicializar estado de carga
+  const [error, setError] = useState<string | null>(null); // Inicializar estado de error
+  const [services, setServices] = useState<Service[]>([]);
+
+  const { toast } = useToast(); // Usar el hook useToast
 
   const getAvailableSlots = async (date: string): Promise<TimeSlot[]> => {
+    setIsLoading(true); // Iniciar carga
+    setError(null); // Limpiar error previo
     try {
-     
-
       console.log('Fetching availability for service ID:', selectedService?._id);
-      const response = await axios.get(`${API_BASE_URL}/services/${selectedService?._id}/disponibilidad?date=${date}`);
-      
-      return response.data.slots;
-    } catch (error) {
-     
+      const response = await axios.get(`${API_BASE_URL}/appointments/availability/${selectedService?._id}?date=${date}`);
+      setAvailableSlots(response.data.data); // Update state with fetched data
+      setIsLoading(false); // Finalizar carga
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Error fetching available slots:', error);
+      setError(error.message || 'Failed to fetch available slots'); // Capturar y establecer error
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Error al cargar disponibilidad.",
+        variant: "destructive",
+      });
+      setIsLoading(false); // Finalizar carga
+      setAvailableSlots([]); // Limpiar slots en caso de error
+      return [];
     }
   };
 
-  const createAppointment = async (appointmentData: Omit<Appointment, '_id' | 'createdAt'>): Promise<boolean> => {
+  const createAppointment = async (appointmentData: Omit<Appointment, '_id' | 'createdAt' | 'status' | 'customerInfo' | 'notes'> & { customerInfo: ContactInfo, status?: 'pending' | 'confirmed' | 'completed' | 'cancelled', notes?: string }): Promise<boolean> => {
+    setIsLoading(true); // Iniciar carga
+    setError(null); // Limpiar error previo
     try {
       const response = await axios.post(`${API_BASE_URL}/appointments`, appointmentData);
-      const newAppointment: Appointment = response.data.appointment;
+      const newAppointment: Appointment = response.data.data; // Backend returns data in response.data.data
       setAppointments(prev => [...prev, newAppointment]);
       
       // Limpiar selección
       setSelectedService(null);
       setSelectedDate('');
       setSelectedTime('');
-      
+      setCurrentStep(1); // Reset step after successful creation
+
+      toast({
+        title: "Éxito",
+        description: "Cita creada exitosamente.",
+      });
+
+      setIsLoading(false); // Finalizar carga
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating appointment:', error);
+      setError(error.message || 'Failed to create appointment'); // Capturar y establecer error
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Error al crear la cita.",
+        variant: "destructive",
+      });
+      setIsLoading(false); // Finalizar carga
       return false;
     }
   };
 
-  const getUserAppointments = async (userId: string): Promise<Appointment[]> => {
+  const getUserAppointments = async (): Promise<Appointment[]> => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const response = await axios.get(`${API_BASE_URL}/appointments/user/${userId}`);
-      return response.data.appointments;
-    } catch (error) {
+      const response = await axios.get(`${API_BASE_URL}/appointments/my`);
+      setAppointments(response.data.data);
+      toast({
+        title: "Éxito",
+        description: "Citas cargadas exitosamente.",
+      });
+      setIsLoading(false);
+      return response.data.data;
+    } catch (error: any) {
       console.error('Error fetching user appointments:', error);
+      setError(error.message || 'Failed to fetch user appointments');
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Error al cargar tus citas.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      setAppointments([]);
+      return [];
+    }
+  };
+
+  const getServiceCatalog = async (): Promise<Service[]> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/service-catalog`);
+      setServices(response.data.data);
+      toast({
+        title: "Éxito",
+        description: "Catálogo de servicios cargado exitosamente.",
+      });
+      setIsLoading(false);
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Error fetching service catalog:', error);
+      setError(error.message || 'Failed to fetch service catalog');
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Error al cargar el catálogo de servicios.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      setServices([]);
       return [];
     }
   };
 
   useEffect(() => {
     const fetchServices = async () => {
+          setIsLoading(true); // Iniciar carga
+          setError(null); // Limpiar error previo
           console.log('Fetching services from:', `${API_BASE_URL}/service-catalog`);
           try {
             const response = await axios.get(`${API_BASE_URL}/service-catalog`);
@@ -195,13 +273,22 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
             }));
             console.log('Transformed services before setting state:', transformedServices);
             setServices(transformedServices);
-          } catch (error) {
+            setIsLoading(false); // Finalizar carga
+          } catch (error: any) {
             console.error('Error fetching services:', error);
+            setError(error.message || 'Failed to fetch services'); // Capturar y establecer error
+            toast({
+              title: "Error",
+              description: error.response?.data?.message || "Error al cargar los servicios.",
+              variant: "destructive",
+            });
+            setServices([]); // Limpiar servicios en caso de error
+            setIsLoading(false); // Finalizar carga
           }
-        };
+    };
 
     fetchServices();
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   return (
     <AppointmentContext.Provider value={{
@@ -213,6 +300,8 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
       selectedTime,
       currentStep,
       contactInfo,
+      isLoading,
+      error,
       setSelectedService,
       setSelectedDate,
       setSelectedTime,
@@ -220,7 +309,8 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
       setContactInfo,
       getAvailableSlots,
       createAppointment,
-      getUserAppointments
+      getUserAppointments,
+      getServiceCatalog
     }}>
       {children}
     </AppointmentContext.Provider>
