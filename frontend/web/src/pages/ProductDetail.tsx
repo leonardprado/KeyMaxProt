@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Star, 
@@ -16,18 +15,95 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCart } from '@/contexts/CartContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
+import apiClient from '../api/axiosConfig'; // Asegúrate que la ruta sea correcta
+import { Spin, Alert } from 'antd'; // Usaremos Spin y Alert para los estados de carga y error
 
 const ProductDetail = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // Obtiene el ID del producto de la URL
   const navigate = useNavigate();
-  const { addToCart } = useCart();
-  const { toggleFavorite, isFavorite } = useFavorites();
+  
+  // Estados para manejar el producto, la carga y los errores
+  const [product, setProduct] = useState<any>(null); // 'any' temporalmente, se puede tipar mejor
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Estados que ya tenías para la UI
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  
+  // Hooks de contexto que se mantienen
+  const { addToCart } = useCart();
+  const { toggleFavorite, isFavorite } = useFavorites();
 
-  // Obtener producto del contexto
-  const { getProductById } = useProducts();
-  const product = getProductById(Number(id));
+  // --- LÓGICA NUEVA: OBTENER DATOS DE LA API ---
+  useEffect(() => {
+    if (!id) {
+      setError('ID de producto no válido.');
+      setLoading(false);
+      return;
+    }
+
+    const fetchProduct = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await apiClient.get(`/products/${id}`);
+        setProduct(response.data.data);
+      } catch (err) {
+        setError('Producto no encontrado o error al cargar.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]); // Se ejecuta cada vez que el ID de la URL cambia
+
+  // --- LÓGICAS DE LA UI (la mayoría se mantienen igual) ---
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 0
+    }).format(price);
+  };
+
+  const handleAddToCart = () => {
+    // Es importante asegurarse de que product no sea null antes de usarlo
+    if (product) {
+      // La lógica de tu CartContext necesita ser compatible con el objeto 'product' de la API
+      addToCart({ ...product, id: product._id });
+    }
+  };
+
+  const updateQuantity = (newQuantity: number) => {
+    if (newQuantity >= 1) {
+      setQuantity(newQuantity);
+    }
+  };
+
+  // --- RENDERIZADO CONDICIONAL ---
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spin tip="Cargando producto..." size="large" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-center">
+        <Alert message="Error" description={error} type="error" showIcon />
+        <Button onClick={() => navigate('/marketplace')} className="mt-4">
+          Volver al Marketplace
+        </Button>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -42,37 +118,16 @@ const ProductDetail = () => {
     );
   }
 
-  const productImages = product.image ? [product.image, product.image, product.image] : [];
-
-  const productFeatures = (product as any).features || [];
-  const reviews = (product as any).reviews || [];
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0
-    }).format(price);
-  };
-
-  const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addToCart(product);
-    }
-  };
-
-  const updateQuantity = (newQuantity: number) => {
-    if (newQuantity >= 1) {
-      setQuantity(newQuantity);
-    }
-  };
+  // --- VARIABLES PARA EL JSX (adaptadas al nuevo objeto 'product') ---
+  
+  const productImages = product.images && product.images.length > 0 ? product.images : ['https://via.placeholder.com/400'];
+  const productFeatures = product.features || [];
+  // La API de reseñas se podría integrar aquí de forma similar
+  const reviews = product.reviews || []; 
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* ImprovedNavigation ya no es necesario aquí si se maneja globalmente en App.tsx */}
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
         <div className="mb-6">
           <Button
             variant="ghost"
@@ -85,7 +140,7 @@ const ProductDetail = () => {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
-          {/* Galería de imágenes */}
+          {/* Galería de imágenes (sin cambios) */}
           <div className="space-y-4">
             <div className="aspect-square rounded-lg overflow-hidden bg-card dark:bg-card-foreground/10 border border-border">
               <img
@@ -94,8 +149,8 @@ const ProductDetail = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              {productImages.map((image, index) => (
+            <div className="grid grid-cols-4 gap-2">
+              {productImages.map((image: string, index: number) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
@@ -111,14 +166,14 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* Información del producto */}
+          {/* Información del producto (sin cambios, pero ahora usa datos de la API) */}
           <div className="space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm text-primary font-semibold">
                   Por {product.brand}
                 </span>
-                {product.isBestSeller && (
+                {product.isBestSeller && ( // Asumiendo que este campo viene de la API
                   <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-semibold">
                     MÁS VENDIDO
                   </span>
@@ -135,7 +190,7 @@ const ProductDetail = () => {
                     <Star
                       key={i}
                       className={`w-5 h-5 ${
-                        i < Math.floor(product.rating)
+                        i < Math.floor(product.averageRating || 0) // Usa averageRating de la API
                           ? 'fill-yellow-400 text-yellow-400'
                           : 'text-slate-300'
                       }`}
@@ -143,14 +198,13 @@ const ProductDetail = () => {
                   ))}
                 </div>
                 <span className="text-muted-foreground">
-                  {product.rating} ({product.reviews} reseñas)
+                  {product.averageRating?.toFixed(1) || 0} ({product.reviewCount || 0} reseñas)
                 </span>
               </div>
             </div>
 
-            {/* Precio */}
             <div className="space-y-2">
-              {product.originalPrice && (
+              {product.originalPrice && ( // Campo opcional
                 <div className="text-lg text-muted-foreground line-through">
                   {formatPrice(product.originalPrice)}
                 </div>
@@ -158,16 +212,15 @@ const ProductDetail = () => {
               <div className="text-4xl font-bold text-foreground">
                 {formatPrice(product.price)}
               </div>
-              {product.discount && (
+              {product.discount && ( // Campo opcional
                 <div className="text-green-500 font-semibold">
                   ¡Ahorrás {formatPrice(product.originalPrice! - product.price)}! ({product.discount}% OFF)
                 </div>
               )}
             </div>
 
-            {/* Características principales */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {product.freeShipping && (
+              {product.freeShipping && ( // Campo opcional
                 <div className="flex items-center gap-2 p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
                   <Truck className="w-5 h-5 text-green-600 dark:text-green-400" />
                   <span className="text-sm font-medium text-green-700 dark:text-green-300">Envío gratis</span>
@@ -175,51 +228,41 @@ const ProductDetail = () => {
               )}
               <div className="flex items-center gap-2 p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
                 <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Garantía 2 años</span>
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Garantía</span>
               </div>
               <div className="flex items-center gap-2 p-3 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
                 <Star className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                <span className="text-sm font-medium text-orange-700 dark:text-orange-300">Mejor calificado</span>
+                <span className="text-sm font-medium text-orange-700 dark:text-orange-300">Calidad Premium</span>
               </div>
             </div>
 
-            {/* Cantidad y acciones */}
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <span className="font-medium text-foreground">Cantidad:</span>
                 <div className="flex items-center border border-border rounded-lg">
-                  <button
-                    onClick={() => updateQuantity(quantity - 1)}
-                    className="p-2 hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
-                  >
+                  <button onClick={() => updateQuantity(quantity - 1)} className="p-2 ...">
                     <Minus className="w-4 h-4" />
                   </button>
-                  <span className="px-4 py-2 min-w-[3rem] text-center text-foreground">{quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(quantity + 1)}
-                    className="p-2 hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
-                  >
+                  <span className="px-4 ...">{quantity}</span>
+                  <button onClick={() => updateQuantity(quantity + 1)} className="p-2 ...">
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
               <div className="flex gap-3">
-                <Button
-                  onClick={handleAddToCart}
-                  className="flex-1 bg-primary hover:bg-primary/90 h-12"
-                >
+                <Button onClick={handleAddToCart} className="flex-1 ...">
                   <ShoppingCart className="w-5 h-5 mr-2" />
                   Agregar al carrito
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => toggleFavorite(product)}
-                  className={`h-12 px-4 ${isFavorite(product.id) ? 'text-red-500 border-red-500 dark:text-red-400 dark:border-red-400' : 'text-muted-foreground'}`}
+                  onClick={() => toggleFavorite({ ...product, id: product._id })}
+                  className={`... ${isFavorite(product._id) ? 'text-red-500 ...' : '...'}`}
                 >
-                  <Heart className={`w-5 h-5 ${isFavorite(product.id) ? 'fill-current' : ''}`} />
+                  <Heart className={`... ${isFavorite(product._id) ? 'fill-current' : ''}`} />
                 </Button>
-                <Button variant="outline" className="h-12 px-4 text-muted-foreground">
+                <Button variant="outline" className="...">
                   <Share2 className="w-5 h-5" />
                 </Button>
               </div>
@@ -227,58 +270,12 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* Información adicional */}
-        <div className="mt-12 grid lg:grid-cols-2 gap-8">
-          {/* Características detalladas */}
-          <Card className="bg-card text-card-foreground border-border">
+        <div className="mt-12">
+          {/* Aquí podrías añadir más secciones como descripción detallada, especificaciones, etc. */}
+          <Card>
             <CardContent className="p-6">
-              <h3 className="text-xl font-bold text-foreground mb-4">
-                Características del producto
-              </h3>
-              <ul className="space-y-3">
-                {productFeatures.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-muted-foreground">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
-          {/* Reseñas */}
-          <Card className="bg-card text-card-foreground border-border">
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold text-foreground mb-4">
-                Reseñas de clientes
-              </h3>
-              <div className="space-y-4">
-                {Array.isArray(reviews) && reviews.length > 0 ? (
-                  reviews.map((review: any) => (
-                    <div key={review.id} className="border-b border-border pb-4 last:border-b-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-medium text-foreground">{review.user}</span>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < review.rating
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-muted-foreground'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-sm text-muted-foreground">{review.date}</span>
-                      </div>
-                      <p className="text-muted-foreground">{review.comment}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground">Aún no hay reseñas para este producto.</p>
-                )}
-              </div>
+              <h3 className="text-xl font-bold mb-4">Descripción</h3>
+              <p className="text-muted-foreground">{product.description}</p>
             </CardContent>
           </Card>
         </div>

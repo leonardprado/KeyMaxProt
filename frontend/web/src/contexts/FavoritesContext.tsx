@@ -1,12 +1,13 @@
+// src/contexts/FavoritesContext.tsx (CORREGIDO)
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Producto as Product } from './ProductContext';
+import { Product } from '../types/product'; // <-- Importamos nuestro nuevo tipo
 
 interface FavoritesContextType {
   favorites: Product[];
   addToFavorites: (product: Product) => void;
-  removeFromFavorites: (productId: number) => void;
-  isFavorite: (productId: number) => boolean;
+  removeFromFavorites: (productId: string) => void; // <-- Ahora el ID es un string
+  isFavorite: (productId: string) => boolean;       // <-- Ahora el ID es un string
   toggleFavorite: (product: Product) => void;
 }
 
@@ -25,24 +26,26 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
 
   const addToFavorites = (product: Product) => {
     setFavorites(prev => {
-      if (prev.find(item => item.id === product.id)) {
+      // Comparamos usando _id
+      if (prev.find(item => item._id === product._id)) {
         return prev;
       }
       return [...prev, product];
     });
   };
 
-  const removeFromFavorites = (productId: number) => {
-    setFavorites(prev => prev.filter(item => item.id !== productId));
+  const removeFromFavorites = (productId: string) => { // Recibe string
+    setFavorites(prev => prev.filter(item => item._id !== productId)); // Compara con _id
   };
 
-  const isFavorite = (productId: number) => {
-    return favorites.some(item => item.id === productId);
+  const isFavorite = (productId: string) => { // Recibe string
+    return favorites.some(item => item._id === productId); // Compara con _id
   };
 
   const toggleFavorite = (product: Product) => {
-    if (isFavorite(product.id)) {
-      removeFromFavorites(product.id);
+    // Compara usando _id
+    if (isFavorite(product._id)) {
+      removeFromFavorites(product._id);
     } else {
       addToFavorites(product);
     }

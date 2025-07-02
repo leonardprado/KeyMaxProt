@@ -1,5 +1,6 @@
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import AppointmentPage from './pages/AppointmentPage';
 import Index from './pages/Index';
 import AuthPage from './pages/AuthPage';
 import Marketplace from './pages/Marketplace';
@@ -12,11 +13,10 @@ import ContactPage from './pages/ContactPage';
 import FAQPage from './pages/FAQPage';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
-import AppointmentPage from './pages/AppointmentPage';
 import Appointments from './pages/Appointments';
 import NotFound from './pages/NotFound';
 import ShopListPage from './pages/dashboard/ShopListPage';
-import ProductListPage from './pages/dashboard/ProductListPage';
+import ProductListPage from './pages/dashboard/products/ProductListPage';
 import ServiceListPage from './pages/dashboard/ServiceListPage';
 import UserListPage from './pages/dashboard/UserListPage';
 import OverviewPage from './pages/dashboard/OverviewPage';

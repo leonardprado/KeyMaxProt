@@ -1,23 +1,44 @@
+// ProductList.tsx (Refactorizado)
 
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import apiClient from '../api/axiosConfig'; // O la ruta correcta a tu apiClient
+import { Spin, Alert } from 'antd'; // O tu componente de UI preferido
+import ProductCard from './ProductCard'; // Tu componente para mostrar un producto
 
 const ProductList = () => {
-  const { productos } = useProductContext();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await apiClient.get('/products'); // <-- ¡Llamada a la API!
+        setProducts(response.data.data); // Asumiendo que tus datos están en response.data.data
+      } catch (err) {
+        setError('No se pudieron cargar los productos.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []); // El array vacío hace que se ejecute solo una vez
+
+  if (loading) {
+    return <Spin tip="Cargando productos..." />;
+  }
+
+  if (error) {
+    return <Alert message="Error" description={error} type="error" />;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {productos.map((prod) => (
-        <Link
-          to={`/productos/${prod.id}`}
-          key={prod.id}
-          className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-lg block"
-        >
-          <img src={prod.image} alt={prod.name} className="w-full h-40 object-contain mb-2" />
-          <h3 className="font-bold text-lg">{prod.name}</h3>
-          <p className="text-orange-600 font-bold text-xl">${prod.price.toLocaleString()}</p>
-          <p className="text-gray-500 line-through">${prod.originalPrice.toLocaleString()}</p>
-          <p className="text-sm text-gray-600">{prod.descripcion.slice(0, 40)}...</p>
-        </Link>
+      {products.map((product) => (
+        <ProductCard key={product._id} product={product} />
       ))}
     </div>
   );

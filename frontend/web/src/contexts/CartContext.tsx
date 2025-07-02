@@ -1,19 +1,17 @@
+// src/contexts/CartContext.tsx (CORREGIDO)
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Producto } from './ProductContext';
+import { Product } from '../types/product'; // <-- Importamos nuestro nuevo tipo
 
-export interface CartItem extends Producto {
+export interface CartItem extends Product {
   quantity: number;
 }
 
-export interface Product extends Producto {}
-
-
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Producto) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  addToCart: (product: Product) => void;
+  removeFromCart: (productId: string) => void;     // <-- ID es string
+  updateQuantity: (productId: string, quantity: number) => void; // <-- ID es string
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -32,12 +30,13 @@ export const useCart = () => {
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  const addToCart = (product: Producto) => {
+  const addToCart = (product: Product) => {
     setItems(prev => {
-      const existingItem = prev.find(item => item.id === product.id);
+      // Comparamos usando _id
+      const existingItem = prev.find(item => item._id === product._id);
       if (existingItem) {
         return prev.map(item =>
-          item.id === product.id
+          item._id === product._id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
@@ -46,18 +45,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeFromCart = (productId: number) => {
-    setItems(prev => prev.filter(item => item.id !== productId));
+  const removeFromCart = (productId: string) => { // Recibe string
+    setItems(prev => prev.filter(item => item._id !== productId)); // Compara con _id
   };
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number) => { // Recibe string
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
     }
     setItems(prev =>
       prev.map(item =>
-        item.id === productId ? { ...item, quantity } : item
+        item._id === productId ? { ...item, quantity } : item // Compara con _id
       )
     );
   };
@@ -67,7 +66,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
+  const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0); // Asumiendo que 'price' es el nombre correcto
 
   return (
     <CartContext.Provider value={{

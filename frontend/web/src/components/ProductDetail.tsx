@@ -1,44 +1,53 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useCart } from "../contexts/CartContext";
+// ProductDetail.tsx (Refactorizado)
+
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import apiClient from '../api/axiosConfig';
+import { Spin, Alert } from 'antd';
 
 const ProductDetail = () => {
-  const { id } = useParams();
-  const { productos } = useProductContext();
-  const { addToCart } = useCart();
-  const navigate = useNavigate();
+  const { id } = useParams(); // Obtiene el ID del producto de la URL
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const producto = productos.find((p) => p.id === Number(id));
-  if (!producto) return <div className="text-center py-12">Producto no encontrado.</div>;
+  useEffect(() => {
+    if (!id) return; // No hacer nada si no hay ID
 
-  const handleBuy = () => {
-    addToCart(producto);
-    navigate("/carrito");
-  };
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const response = await apiClient.get(`/products/${id}`); // <-- ¡Llamada a la API!
+        setProduct(response.data.data);
+      } catch (err) {
+        setError('Producto no encontrado.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]); // Se vuelve a ejecutar si el ID de la URL cambia
+
+  if (loading) {
+    return <Spin tip="Cargando producto..." />;
+  }
+
+  if (error) {
+    return <Alert message="Error" description={error} type="error" />;
+  }
+  
+  if (!product) {
+      return <div>Producto no encontrado</div>
+  }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto">
-      <Link to="/productos" className="mb-4 text-blue-600 block">&larr; Volver</Link>
-      <div className="flex flex-col md:flex-row gap-6">
-        <img src={producto.image} alt={producto.name} className="w-64 h-64 object-contain" />
-        <div>
-          <h2 className="text-2xl font-bold mb-2">{producto.name}</h2>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-orange-600 font-bold text-2xl">${producto.price.toLocaleString()}</span>
-            <span className="text-gray-500 line-through">${producto.originalPrice.toLocaleString()}</span>
-            <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-semibold">50% OFF</span>
-          </div>
-          <p className="mb-2">Color: <span className="font-semibold">{producto.color}</span></p>
-          <p className="mb-2">Stock disponible: <span className="font-semibold">{producto.stock}</span></p>
-          <p className="mb-2">Calificación: <span className="font-semibold">{producto.rating} ⭐</span> ({producto.vendidos}+ vendidos)</p>
-          <p className="mb-4">{producto.descripcion}</p>
-          <button
-            className="bg-blue-600 text-white px-6 py-2 rounded font-bold hover:bg-blue-700"
-            onClick={handleBuy}
-          >
-            Comprar ahora
-          </button>
-        </div>
-      </div>
+    <div>
+      {/* ... Tu JSX para mostrar los detalles del 'product' ... */}
+      <h1>{product.name}</h1>
+      <p>{product.description}</p>
+      {/* ... etc ... */}
     </div>
   );
 };
