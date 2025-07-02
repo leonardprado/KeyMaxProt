@@ -1,46 +1,68 @@
+// src/components/dashboard/CategoryChart.tsx
 
-import React from 'react';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Pie } from 'react-chartjs-2';
+import { Card, Spin, Alert } from 'antd';
+import {
+  Chart as ChartJS, ArcElement, Tooltip, Legend,
+} from 'chart.js';
+import apiClient from '../../api/axiosConfig';
 
-interface CategoryData {
-  name: string;
-  value: number;
-}
+// Registrar los componentes para un gráfico de pastel
+ChartJS.register(ArcElement, Tooltip, Legend);
 
-interface CategoryChartProps {
-  data: CategoryData[];
-}
+const CategoryChart = () => {
+  const [chartData, setChartData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28DFF', '#FF69B4'];
+  useEffect(() => {
+    const fetchCategoryData = async () => {
+      try {
+        const response = await apiClient.get('/stats/category-distribution');
+        const apiData = response.data.data;
 
-const CategoryChart: React.FC<CategoryChartProps> = ({ data }) => {
+        const labels = apiData.map(item => item._id); // Ej: ['Car Audio', 'Seguridad']
+        const dataPoints = apiData.map(item => item.count); // Ej: [35, 50]
+
+        setChartData({
+          labels,
+          datasets: [{
+            label: '# de Productos',
+            data: dataPoints,
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.7)',
+              'rgba(54, 162, 235, 0.7)',
+              'rgba(255, 206, 86, 0.7)',
+              'rgba(75, 192, 192, 0.7)',
+              'rgba(153, 102, 255, 0.7)',
+              'rgba(255, 159, 64, 0.7)',
+            ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+              'rgba(255, 159, 64, 1)',
+            ],
+            borderWidth: 1,
+          }],
+        });
+      } catch (error) {
+        console.error("Error fetching category data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategoryData();
+  }, []);
+
+  if (loading) return <Spin tip="Cargando datos de categorías..." />;
+  if (!chartData) return <Alert message="No se pudieron cargar los datos de categorías." type="warning" />;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Distribución por Categorías</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              outerRadius={80}
-              fill="#8884d8"
-              dataKey="value"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
-      </CardContent>
+    <Card title="Distribución de Productos por Categoría">
+      <Pie data={chartData} />
     </Card>
   );
 };
