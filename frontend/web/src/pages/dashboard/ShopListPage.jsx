@@ -1,10 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import apiClient from "@/api/axiosConfig";
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 const ShopListPage = () => {
@@ -17,7 +17,7 @@ const ShopListPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('/api/shops');
+      const response = await apiClient.get('/api/shops');
       setShops(response.data);
     } catch (error) {
       console.error('Error fetching shops:', error);
@@ -38,7 +38,7 @@ const ShopListPage = () => {
 
   const handleVerifyChange = async (shopId, isVerified) => {
     try {
-      await axios.put(`/api/shops/${shopId}`, { is_verified: isVerified });
+      await apiClient.put(`/api/shops/${shopId}`, { is_verified: isVerified });
       toast({
         title: "Éxito",
         description: `Taller ${isVerified ? 'verificado' : 'desverificado'} correctamente.`, 

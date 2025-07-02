@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createService, getServices, getService, updateService, deleteService } = require('../controllers/serviceCatalogController');
+const { createService, getServices, getService, updateService, deleteService, getServiceCategories } = require('../controllers/serviceCatalogController');
 const { protect, authorize } = require('../middleware/authMiddleware'); // Assuming you have auth middleware
 
 // Protect and authorize routes as needed

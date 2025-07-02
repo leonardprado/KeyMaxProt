@@ -10,10 +10,10 @@ exports.createAppointment = asyncHandler(async (req, res) => {
 
     // user_id comes from the authenticated user (req.user.id)
     const newAppointment = new Appointment({
-        user_id: req.user.id,
-        vehicle_id,
-        shop_id,
-        service_id,
+        user: req.user.id, // <-- Nombre de campo correcto ("user")
+        vehicle: vehicle_id, // <-- Se recomienda estandarizar a "vehicle" también
+        shop: shop_id,       // <-- "shop"
+        service: service_id, // <-- "service"
         date
     });
 

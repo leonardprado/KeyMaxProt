@@ -29,6 +29,9 @@ import ServiceListPage from './pages/dashboard/services/ServiceListPage';
 import ShopListPage from './pages/dashboard/ShopListPage';
 import UserListPage from './pages/dashboard/UserListPage';
 
+// ¡NUEVA RUTA AÑADIDA AQUÍ!
+import Appointments from './pages/Appointments'; // <-- Importa tu componente de citas
+import AppointmentPage from './pages/AppointmentPage';
 // Otros
 import ProtectedRoute from './components/ProtectedRoute';
 import NotFound from './pages/NotFound';
@@ -48,6 +51,9 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/profile" element={<Profile />} />
+        {/* --- Aquí se añade la ruta para las citas del usuario --- */}
+        <Route path="/my-appointments" element={<Appointments />} />
+        <Route path="/book-appointment" element={<AppointmentPage />} /> {/* <-- Agrega la ruta para reservar citas también */}
       </Route>
       
       {/* --- Rutas del Dashboard de Admin (Protegidas) --- */}

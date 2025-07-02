@@ -14,7 +14,7 @@ exports.getComments = asyncHandler(async (req, res, next) => {
 // @route   POST /api/posts/:postId/comments
 // @access  Private
 exports.createComment = asyncHandler(async (req, res, next) => {
-  req.body.author = req.user.id;
+  req.body.user = req.user.id;
   req.body.post = req.params.postId;
   const post = await Post.findById(req.params.postId);
   if (!post) {

@@ -7,7 +7,7 @@ const ErrorResponse = require('../utils/errorResponse');
 // @route   POST /api/reviews
 // @access  Private
 exports.createReview = asyncHandler(async (req, res, next) => {
-  req.body.author_id = req.user.id;
+  req.body.user = req.user.id;
 
   const review = await Review.create(req.body);
 
@@ -24,7 +24,7 @@ exports.getReviewsByItem = asyncHandler(async (req, res, next) => {
   const features = new APIFeatures(Review.find({
     item_type: req.params.itemType,
     item_id: req.params.itemId
-  }).populate('author_id', 'name'), req.query)
+  }).populate('user', 'name'), req.query)
     .filter()
     .sort()
     .limitFields()

@@ -6,7 +6,7 @@ const CommentSchema = new mongoose.Schema({
     type: String,
     required: [true, 'El comentario no puede estar vacío.']
   },
-  author: {
+  user: {
     type: mongoose.Schema.ObjectId,
     ref: 'User',
     required: true

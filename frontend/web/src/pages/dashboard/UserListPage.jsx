@@ -1,12 +1,12 @@
 
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import apiClient from "@/api/axiosConfig"; 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2, Edit } from 'lucide-react';
 
 const UserListPage = () => {
@@ -25,7 +25,7 @@ const UserListPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('/api/users');
+      const response = await apiClient.get('/api/users');
       setUsers(response.data.data.users);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -62,7 +62,7 @@ const UserListPage = () => {
 
   const handleSave = async () => {
     try {
-      await axios.put(`/api/users/${editingUser._id}`, formData);
+      await apiClient.put(`/api/users/${editingUser._id}`, formData);
       toast({
         title: "Éxito",
         description: "Usuario actualizado correctamente.",

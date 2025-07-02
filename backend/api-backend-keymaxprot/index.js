@@ -67,6 +67,7 @@ app.use('/api/service-catalog', serviceCatalogRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/shops', shopRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/posts', postRoutes); 
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/threads', threadRoutes);
 app.use('/api/technicians', technicianRoutes);

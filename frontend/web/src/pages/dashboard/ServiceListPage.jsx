@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../../../api/axiosConfig';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,7 +26,7 @@ const ServiceListPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('/api/services');
+      const response = await apiClient.get('/api/services');
       setServices(response.data.servicios);
     } catch (error) {
       console.error('Error fetching services:', error);
@@ -66,7 +66,7 @@ const ServiceListPage = () => {
   const handleDelete = async (serviceId) => {
     if (!window.confirm('¿Estás seguro de que quieres eliminar este servicio?')) return;
     try {
-      await axios.delete(`/api/services/${serviceId}`);
+      await apiClient.delete(`/api/services/${serviceId}`);
       toast({
         title: "Éxito",
         description: "Servicio eliminado exitosamente.",
@@ -85,13 +85,13 @@ const ServiceListPage = () => {
   const handleSave = async () => {
     try {
       if (editingService) {
-        await axios.put(`/api/services/${editingService._id}`, formData);
+        await apiClient.put(`/api/services/${editingService._id}`, formData);
         toast({
           title: "Éxito",
           description: "Servicio actualizado exitosamente.",
         });
       } else {
-        await axios.post('/api/services', formData);
+        await axiosInstance.post('/api/services', formData);
         toast({
           title: "Éxito",
           description: "Servicio creado exitosamente.",

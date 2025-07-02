@@ -9,6 +9,7 @@ const Vehicle = require('./Vehicle');
 
 const ServiceRecord = require('./ServiceRecord');
 
+const MaintenancePlan = require('./MaintenancePlan');
 
 const Shop = require('./Shop');
 
@@ -51,8 +52,9 @@ module.exports = {
     Message,
     Appointment,
     Tutorial,
-  Review,
-  ServiceCatalog,
-  Thread,
-  Post,
+    MaintenancePlan,
+    Review,
+    ServiceCatalog,
+    Thread,
+    Post,
 };

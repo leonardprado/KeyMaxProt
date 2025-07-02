@@ -6,10 +6,7 @@ const userSchema = new mongoose.Schema({
    username: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, select: false },
-    isVerified: { type: Boolean, default: false },
-    isAdmin: { type: Boolean, default: false },
-    isTecnico: { type: Boolean, default: false },
-    isSuperAdmin: { type: Boolean, default: false },
+    
     // --- TOKENS PARA PROCESOS ESPECÍFICOS ---
     verificationToken: String,       
     // Para verificar el email

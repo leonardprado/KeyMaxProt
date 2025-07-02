@@ -6,7 +6,7 @@ const { Thread, Post } = require('../models/AllModels');
 // @route   POST /api/threads 
 // @access  Private 
 exports.createThread = asyncHandler(async (req, res, next) => {
-  req.body.author = req.user.id;
+  req.body.user = req.user.id;
   const thread = await Thread.create(req.body);
   res.status(201).json({ success: true, data: thread });
 });

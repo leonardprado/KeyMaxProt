@@ -2,7 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 
 const ProductCard = ({ product }) => {
-  const imageUrl = product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/150';
+  const imageUrl = product.images && product.images.length > 0 ? product.images[0] : './public/placeholder.svg';
 
   return (
     <Card>

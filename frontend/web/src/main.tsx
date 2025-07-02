@@ -12,6 +12,7 @@ import { CartProvider } from './contexts/CartContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { FavoritesProvider } from './contexts/FavoritesContext';
 import { Toaster } from "@/components/ui/sonner" // O la que uses
+import { AppointmentProvider } from './contexts/AppointmentContext';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -21,8 +22,10 @@ createRoot(document.getElementById('root')!).render(
           <CartProvider>
             <FavoritesProvider>
               <NotificationProvider>
-                <App />
-                <Toaster />
+                <AppointmentProvider> {/* <-- Aquí debe estar */}
+                  <App />
+                  <Toaster />
+                </AppointmentProvider>
               </NotificationProvider>
             </FavoritesProvider>
           </CartProvider>

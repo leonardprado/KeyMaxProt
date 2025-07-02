@@ -11,7 +11,7 @@ const ThreadSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Por favor, describe tu problema o pregunta.']
   },
-  author: {
+  user: {
     type: mongoose.Schema.ObjectId,
     ref: 'User',
     required: true
