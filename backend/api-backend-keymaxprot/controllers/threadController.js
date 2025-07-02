@@ -1,7 +1,6 @@
 const asyncHandler = require('../middleware/asyncHandler');
-const Thread = require('../models/Thread');
-const Post = require('../models/Post');
-// ... otros imports 
+const { Thread, Post } = require('../models/AllModels');
+
 
 // @desc    Crear un nuevo hilo/pregunta 
 // @route   POST /api/threads 

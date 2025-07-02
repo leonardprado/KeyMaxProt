@@ -1,4 +1,4 @@
-const { Appointment, User, Vehicle, Shop, ServiceCatalog } = require('../models/AllModels');
+const { Appointment, User, Vehicle, Shop} = require('../models/AllModels');
 const APIFeatures = require('../utils/apiFeatures');
 const asyncHandler = require('../middleware/asyncHandler');
 

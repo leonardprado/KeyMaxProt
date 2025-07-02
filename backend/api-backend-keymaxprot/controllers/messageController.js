@@ -1,7 +1,6 @@
-const Conversation = require('../models/Conversation');
-const Message = require('../models/Message');
+const { Appointment, User, Vehicle, Shop, ServiceCatalog } = require('../models/AllModels');
 const APIFeatures = require('../utils/apiFeatures');
-const User = require('../models/User');
+
 const asyncHandler = require('../middleware/asyncHandler');
 
 // Crear nuevo mensaje

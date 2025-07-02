@@ -1,8 +1,6 @@
 const asyncHandler = require('../middleware/asyncHandler'); 
- const ErrorResponse = require('../utils/errorResponse'); 
- const Vehicle = require('../models/Vehicle'); 
- const User = require('../models/User');
-const MaintenancePlan = require('../models/MaintenancePlan');
+ const ErrorResponse = require('../utils/errorResponse');  
+const { MaintenancePlan, User, Vehicle } = require('../models/AllModels');
 const APIFeatures = require('../utils/apiFeatures'); 
  
  // @desc    Registrar un nuevo vehículo 

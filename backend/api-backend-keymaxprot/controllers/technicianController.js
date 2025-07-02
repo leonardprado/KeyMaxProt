@@ -1,6 +1,5 @@
 const asyncHandler = require('../middleware/asyncHandler');
-const Technician = require('../models/Technician');
-const Shop = require('../models/Shop');
+const { Shop, Technician } = require('../models/AllModels');
 const ErrorResponse = require('../utils/errorResponse');
 const APIFeatures = require('../utils/apiFeatures');
 

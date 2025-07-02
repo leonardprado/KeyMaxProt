@@ -1,5 +1,4 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useProductContext } from "../contexts/ProductContext";
 import { useCart } from "../contexts/CartContext";
 
 const ProductDetail = () => {

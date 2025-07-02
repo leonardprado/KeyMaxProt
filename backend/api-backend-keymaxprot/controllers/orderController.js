@@ -1,7 +1,5 @@
-const Order = require('../models/Order');
+const { Appointment, User, Vehicle, Shop, ServiceCatalog } = require('../models/AllModels');
 const APIFeatures = require('../utils/apiFeatures');
-const Payment = require('../models/Payment');
-const Product = require('../models/Product');
 const asyncHandler = require('../middleware/asyncHandler');
 const ErrorResponse = require('../utils/errorResponse');
 

@@ -23,7 +23,6 @@ const startMaintenanceNotifier = require('./workers/maintenanceNotifier');
 const authRoutes = require('./routes/authRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const vehicleRoutes = require('./routes/vehicleRoutes');
-const serviceRoutes = require('./routes/serviceRoutes');
 const tutorialRoutes = require('./routes/tutorialRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const serviceCatalogRoutes = require('./routes/serviceCatalogRoutes');
@@ -62,7 +61,6 @@ mercadopago.configure({
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/vehicles', vehicleRoutes);
-app.use('/api/services', serviceRoutes);
 app.use('/api/tutorials', tutorialRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/service-catalog', serviceCatalogRoutes);

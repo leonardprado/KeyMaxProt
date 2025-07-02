@@ -1,5 +1,5 @@
 
-const Post = require('../models/Post');
+const { Appointment, User, Vehicle, Shop, ServiceCatalog } = require('../models/AllModels');
 const asyncHandler = require('../middleware/asyncHandler');
 const ErrorResponse = require('../utils/errorResponse');
 

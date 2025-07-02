@@ -1,4 +1,4 @@
-const ServiceCatalog = require('../models/ServiceCatalog');
+const { ServiceCatalog } = require('../models/AllModels');
 const ErrorResponse = require('../utils/errorResponse');
 const APIFeatures = require('../utils/apiFeatures');
 const asyncHandler = require('../middleware/asyncHandler');

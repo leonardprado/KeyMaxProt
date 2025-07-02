@@ -1,8 +1,8 @@
 const asyncHandler = require('../middleware/asyncHandler'); // Usaremos un wrapper para no repetir try-catch
 const ErrorResponse = require('../utils/errorResponse' );
-const Shop = require('../models/Shop' );
+const { User, Shop } = require('../models/AllModels');
 const APIFeatures = require('../utils/apiFeatures');
-const User = require('../models/User'); // Necesitamos el modelo User
+
 
 // @desc    Crear un nuevo taller
 // @route   POST /api/shops

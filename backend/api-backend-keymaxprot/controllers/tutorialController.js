@@ -1,4 +1,4 @@
-const Tutorial = require('../models/Tutorial');
+const { Thread, Post, Tutorial } = require('../models/AllModels');
 const APIFeatures = require('../utils/apiFeatures');
 const asyncHandler = require('../middleware/asyncHandler');
 const ErrorResponse = require('../utils/errorResponse');

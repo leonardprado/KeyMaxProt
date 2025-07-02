@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCart } from '@/contexts/CartContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { useProducts } from '@/contexts/ProductContext';
 
 const ProductDetail = () => {
   const { id } = useParams();
