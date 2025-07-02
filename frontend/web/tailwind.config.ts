@@ -1,21 +1,41 @@
-import withMT from "@material-tailwind/react/utils/withMT";
- 
-// El 'as unknown as' es una pequeña conversión de tipo que a veces es
-// necesaria en TypeScript para que el export con withMT funcione sin problemas.
-// No afecta la funcionalidad.
-export default withMT({
+// frontend/web/tailwind.config.ts (VERSIÓN PARA SHADCN/UI)
+import type { Config } from "tailwindcss"
+
+const config = {
+  darkMode: ["class"],
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}", // Esta ruta cubre todos los archivos relevantes dentro de 'src'
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
   ],
+  prefix: "",
   theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
     extend: {
-      // Aquí puedes añadir tus propias clases personalizadas en el futuro.
-      // Por ejemplo:
-      // colors: {
-      //   'keymax-blue': '#00529B',
-      // },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
     },
   },
-  plugins: [], // Se elimina 'tailwindcss-animate' que no es de Material Tailwind
-});
+  plugins: [require("tailwindcss-animate")],
+} satisfies Config
+
+export default config
