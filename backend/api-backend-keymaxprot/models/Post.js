@@ -1,41 +1,35 @@
+
 const mongoose = require('mongoose');
 
 const PostSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: [true, 'El título es requerido.'],
+    trim: true
+  },
   content: {
     type: String,
-    required: [true, 'La respuesta no puede estar vacía.']
+    required: [true, 'El contenido no puede estar vacío.']
   },
   author: {
     type: mongoose.Schema.ObjectId,
     ref: 'User',
     required: true
   },
-  thread: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Thread',
-    required: true
+  tags: {
+    type: [String],
+    default: []
   },
-  // Para la fase 2: sistema de votos
-  upvotes: {
+  views: {
     type: Number,
     default: 0
-  }
+  },
+  likes: [{
+    type: mongoose.Schema.ObjectId,
+    ref: 'User'
+  }]
 }, {
   timestamps: true
 });
-
-// Hook para actualizar el contador de posts en el Thread
-PostSchema.post('save', async function() {
-  await this.model('Thread').findByIdAndUpdate(this.thread, {
-    $inc: { postCount: 1 }
-  });
-});
-
-PostSchema.post('remove', async function() {
-  await this.model('Thread').findByIdAndUpdate(this.thread, {
-    $inc: { postCount: -1 }
-  });
-});
-
 
 module.exports = mongoose.model('Post', PostSchema);

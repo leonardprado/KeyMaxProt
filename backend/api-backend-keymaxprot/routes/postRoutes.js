@@ -1,16 +1,25 @@
+
 const express = require('express');
-const { createPost } = require('../controllers/postController');
-const { protect } = require('../middleware/authMiddleware');
+const {
+  getPosts,
+  getPost,
+  createPost,
+  updatePost,
+  deletePost,
+  likePost
+} = require('../controllers/postController');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
-// La opción { mergeParams: true } permite acceder a los parámetros de la ruta padre (ej. :threadId)
-const router = express.Router({ mergeParams: true });
+// Include other resource routers
+const commentRouter = require('./commentRoutes');
 
-router.route('/')
-  .post(protect, createPost);
+const router = express.Router();
 
-// Aquí añadirías en el futuro las rutas para PUT y DELETE en un post específico
-// router.route('/:postId')
-//   .put(updatePost)
-//   .delete(deletePost);
+// Re-route into other resource routers
+router.use('/:postId/comments', commentRouter);
+
+router.route('/').get(getPosts).post(protect, authorize('tecnico', 'admin'), createPost);
+router.route('/:id').get(getPost).put(protect, authorize('tecnico', 'admin'), updatePost).delete(protect, authorize('tecnico', 'admin'), deletePost);
+router.route('/:id/like').put(protect, likePost);
 
 module.exports = router;

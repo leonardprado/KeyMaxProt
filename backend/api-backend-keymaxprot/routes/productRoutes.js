@@ -5,7 +5,8 @@ const {
   getProducts,
   getProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  getProductCategories
 } = require('../controllers/productController');
 
 const { protect, authorize } = require('../middleware/authMiddleware');
@@ -116,6 +117,8 @@ router
   .route('/')
   .post(protect, authorize('shop_owner', 'admin'), createProduct)
   .get(getProducts);
+
+router.route('/categories').get(getProductCategories);
 
 /**
  * @swagger

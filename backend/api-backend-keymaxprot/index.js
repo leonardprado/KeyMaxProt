@@ -20,6 +20,7 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const threadRoutes = require('./routes/threadRoutes');
 const postRoutes = require('./routes/postRoutes');
 const technicianRoutes = require('./routes/technicianRoutes');
+const statsRoutes = require('./routes/statsRoutes');
 const errorHandler = require('./middleware/errorMiddleware');
 const colors = require('colors');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -1190,6 +1191,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/threads', threadRoutes);
 app.use('/api/technicians', technicianRoutes);
+app.use('/api/stats', statsRoutes);
 
 
 

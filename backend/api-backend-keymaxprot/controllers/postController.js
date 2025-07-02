@@ -1,23 +1,81 @@
-const asyncHandler = require('../middleware/asyncHandler');
-const Post = require('../models/Post');
-const Thread = require('../models/Thread');
-// ... otros imports 
 
-// @desc    Crear una nueva respuesta en un hilo 
-// @route   POST /api/threads/:threadId/posts 
-// @access  Private 
+const Post = require('../models/Post');
+const asyncHandler = require('../middleware/asyncHandler');
+const ErrorResponse = require('../utils/errorResponse');
+
+// @desc    Get all posts
+// @route   GET /api/posts
+// @access  Public
+exports.getPosts = asyncHandler(async (req, res, next) => {
+  const posts = await Post.find().populate('author', 'name').sort({ createdAt: -1 });
+  res.status(200).json({ success: true, count: posts.length, data: posts });
+});
+
+// @desc    Get single post
+// @route   GET /api/posts/:id
+// @access  Public
+exports.getPost = asyncHandler(async (req, res, next) => {
+  const post = await Post.findById(req.params.id).populate('author', 'name').populate('likes', 'name');
+  if (!post) {
+    return next(new ErrorResponse(`Post not found with id of ${req.params.id}`, 404));
+  }
+  post.views += 1;
+  await post.save();
+  res.status(200).json({ success: true, data: post });
+});
+
+// @desc    Create post
+// @route   POST /api/posts
+// @access  Private/Technician
 exports.createPost = asyncHandler(async (req, res, next) => {
   req.body.author = req.user.id;
-  req.body.thread = req.params.threadId;
-
-  // Verificar que el hilo exista 
-  const thread = await Thread.findById(req.params.threadId);
-  if (!thread) {
-    return next(new ErrorResponse(`Hilo no encontrado con id ${req.params.threadId}`, 404));
-  }
-  
   const post = await Post.create(req.body);
   res.status(201).json({ success: true, data: post });
 });
 
-// ... aquí irían las funciones para obtener, actualizar y eliminar posts
+// @desc    Update post
+// @route   PUT /api/posts/:id
+// @access  Private/Technician
+exports.updatePost = asyncHandler(async (req, res, next) => {
+  let post = await Post.findById(req.params.id);
+  if (!post) {
+    return next(new ErrorResponse(`Post not found with id of ${req.params.id}`, 404));
+  }
+  if (post.author.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(new ErrorResponse(`User ${req.user.id} is not authorized to update this post`, 401));
+  }
+  post = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  res.status(200).json({ success: true, data: post });
+});
+
+// @desc    Delete post
+// @route   DELETE /api/posts/:id
+// @access  Private/Technician
+exports.deletePost = asyncHandler(async (req, res, next) => {
+  const post = await Post.findById(req.params.id);
+  if (!post) {
+    return next(new ErrorResponse(`Post not found with id of ${req.params.id}`, 404));
+  }
+  if (post.author.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(new ErrorResponse(`User ${req.user.id} is not authorized to delete this post`, 401));
+  }
+  await post.remove();
+  res.status(200).json({ success: true, data: {} });
+});
+
+// @desc    Like a post
+// @route   PUT /api/posts/:id/like
+// @access  Private
+exports.likePost = asyncHandler(async (req, res, next) => {
+  const post = await Post.findById(req.params.id);
+  if (!post) {
+    return next(new ErrorResponse(`Post not found with id of ${req.params.id}`, 404));
+  }
+  if (post.likes.includes(req.user.id)) {
+    post.likes = post.likes.filter(like => like.toString() !== req.user.id);
+  } else {
+    post.likes.push(req.user.id);
+  }
+  await post.save();
+  res.status(200).json({ success: true, data: post.likes });
+});

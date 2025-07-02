@@ -133,3 +133,15 @@ exports.deleteProduct = asyncHandler(async (req, res, next) => {
     data: {}
   });
 });
+
+// @desc    Get all product categories
+// @route   GET /api/products/categories
+// @access  Public
+exports.getProductCategories = asyncHandler(async (req, res, next) => {
+  const categories = await Product.distinct('category');
+  res.status(200).json({
+    success: true,
+    count: categories.length,
+    data: categories
+  });
+});

@@ -53,15 +53,15 @@ const ImprovedNavigation = () => {
           <Link to="/blog" className="text-foreground/80 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
             Blog
           </Link>
-          <button onClick={() => scrollToSection('servicios')} className="text-foreground/80 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
+          <Link to="/services" className="text-foreground/80 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
             Servicios
-          </button>
-          <button onClick={() => scrollToSection('nosotros')} className="text-foreground/80 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
+          </Link>
+          <Link to="/about" className="text-foreground/80 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
             Nosotros
-          </button>
-          <button onClick={() => scrollToSection('contacto')} className="text-foreground/80 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
+          </Link>
+          <Link to="/contact" className="text-foreground/80 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
             Contacto
-          </button>
+          </Link>
         </div>
         <div className="flex items-center space-x-4">
           <NotificationCenter />

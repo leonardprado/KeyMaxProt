@@ -8,7 +8,8 @@ const {
   eliminarServicio,
   calificarServicio,
   verificarDisponibilidad,
-  asignarTecnico
+  asignarTecnico,
+  getServiceCategories
 } = require('../controllers/serviceController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
@@ -150,6 +151,8 @@ router.get('/:id', getServicio);
  *         description: Server error
  */
 router.get('/:id/disponibilidad', verificarDisponibilidad);
+
+router.get('/categories', getServiceCategories);
 
 // Rutas protegidas que requieren autenticación y/o autorización
 

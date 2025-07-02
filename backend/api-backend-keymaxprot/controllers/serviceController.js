@@ -245,3 +245,15 @@ exports.asignarTecnico = async (req, res) => {
     });
   }
 };
+
+// @desc    Get all service categories
+// @route   GET /api/services/categories
+// @access  Public
+exports.getServiceCategories = asyncHandler(async (req, res, next) => {
+  const categories = await Service.distinct('categoria');
+  res.status(200).json({
+    success: true,
+    count: categories.length,
+    data: categories
+  });
+});

@@ -1,41 +1,17 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { componentTagger } from "lovable-tagger";
-import tailwindcss from "tailwindcss";
-import autoprefixer from "autoprefixer";
+// vite.config.ts
+
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path' // Necesitamos el módulo 'path' de Node.js
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-  },
-  plugins: [
-    react(),
-    mode === 'development' &&
-    componentTagger(),
-  ].filter(Boolean),
-  css: {
-    postcss: {
-      plugins: [
-        tailwindcss(),
-        autoprefixer(),
-      ],
-    },
-  },
+export default defineConfig({
+  plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "date-fns": path.resolve(__dirname, "./node_modules/date-fns"),
+      // Aquí definimos el alias '@' para que apunte a la carpeta 'src'
+      // path.resolve(__dirname, './src') crea la ruta absoluta correcta
+      '@': path.resolve(__dirname, './src'),
     },
   },
-  optimizeDeps: {
-    exclude: ['date-fns', '@motionone/animation'],
-  },
-  build: {
-    rollupOptions: {
-      external: ['@motionone/animation'],
-    },
-  },
-}));
+})
