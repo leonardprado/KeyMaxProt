@@ -1,16 +1,25 @@
+// routes/statsRoutes.js (VERSIÓN CORREGIDA Y COMPLETA)
+
 const express = require('express');
 const router = express.Router();
 
-// Asegúrate de importar todas las funciones que necesitas del controlador
-const { getOverview, getSalesOverTime } = require('../controllers/statsController'); 
+// Importamos todas las funciones del controlador con los nombres correctos
+const { 
+    getOverview, 
+    getSalesOverTime, 
+    getUserRoles, 
+    getCategoryDistribution 
+} = require('../controllers/statsController');
+
 const { protect, authorize } = require('../middleware/authMiddleware');
 
-// Aplicar los middlewares a TODAS las rutas en este archivo de una sola vez
+// Aplicamos protección de admin a todas las rutas de este archivo
 router.use(protect, authorize('admin'));
 
-// Ahora define las rutas sin tener que repetir los middlewares
+// Definimos todas las rutas que el frontend necesita
 router.route('/overview').get(getOverview);
-router.route('/sales-over-time').get(getSalesOverTime);
-// Aquí añadirás futuras rutas de estadísticas...
+router.route('/sales-over-time').get(getSalesOverTime); // Ruta para el gráfico de ventas
+router.route('/user-roles').get(getUserRoles); // Ruta para el gráfico de roles
+router.route('/category-distribution').get(getCategoryDistribution); // Ruta para el gráfico de categorías
 
 module.exports = router;
