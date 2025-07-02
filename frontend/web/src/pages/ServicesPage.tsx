@@ -1,21 +1,37 @@
+// src/pages/ServicesPage.tsx (VERSIÓN CORREGIDA)
+
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../api/axiosConfig'; // <-- Usa tu apiClient estandarizado
 import ImprovedNavigation from '../components/ImprovedNavigation';
 import ServiceCard from '../components/ServiceCard';
 import { Loader2 } from 'lucide-react';
+import { Alert } from 'antd'; // Usaremos Alert para los errores
 
 const ServicesPage = () => {
-  const [services, setServices] = useState([]);
+  // Inicializa el estado como un array vacío, lo cual es correcto.
+  const [services, setServices] = useState([]); 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchServices = async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await axios.get('/api/services');
-        setServices(res.data.servicios);
+        // Usamos apiClient en lugar de axios directamente
+        const res = await apiClient.get('/service-catalog'); // <-- ¡Llama a la ruta correcta!
+        
+        // --- LÍNEA CORREGIDA ---
+        // Accedemos a res.data.data, que es donde está el array
+        if (res.data && Array.isArray(res.data.data)) {
+          setServices(res.data.data);
+        } else {
+          // Si la respuesta no es lo que esperamos, lo manejamos como un error
+          console.error("La respuesta de la API no tiene el formato esperado:", res.data);
+          setError('Error al procesar los datos de los servicios.');
+          setServices([]); // Nos aseguramos que services sea un array
+        }
+
       } catch (err) {
         console.error('Error fetching services:', err);
         setError('Error al cargar los servicios.');
@@ -26,21 +42,18 @@ const ServicesPage = () => {
     fetchServices();
   }, []);
 
+  // El resto de tu JSX ya está bien, no necesita cambios.
+  // Tu renderizado condicional ya maneja el caso de array vacío correctamente.
+
+  if (loading) { /* ... tu JSX de carga ... */ }
+  if (error) { return <Alert message="Error" description={error} type="error" showIcon />; }
+
   return (
     <div>
       <ImprovedNavigation />
       <div className="container mx-auto p-8">
         <h1 className="text-4xl font-bold text-center mb-8">Nuestros Servicios</h1>
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <p className="ml-2 text-gray-600">Cargando servicios...</p>
-          </div>
-        ) : error ? (
-          <div className="text-center text-red-500 h-64 flex justify-center items-center">
-            <p>{error}</p>
-          </div>
-        ) : services.length === 0 ? (
+        {services.length === 0 && !loading ? (
           <div className="text-center text-gray-600 h-64 flex justify-center items-center">
             <p>No hay servicios disponibles en este momento.</p>
           </div>

@@ -61,6 +61,18 @@ exports.updateService = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @desc    Get all service categories
+// @route   GET /api/service-catalog/categories
+// @access  Public
+exports.getServiceCategories = asyncHandler(async (req, res, next) => {
+    const categories = await ServiceCatalog.distinct('category');
+    res.status(200).json({
+      success: true,
+      count: categories.length,
+      data: categories,
+    });
+  });
+  
 // @desc    Get single service from the catalog
 // @route   GET /api/services/:id
 // @access  Public
