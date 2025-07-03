@@ -2,7 +2,7 @@
 const { Appointment, User, Vehicle, Shop, ServiceCatalog, Post } = require('../models/AllModels');
 const asyncHandler = require('../middleware/asyncHandler');
 const ErrorResponse = require('../utils/errorResponse');
-
+const APIFeatures = require('../utils/APIFeatures');
 // @desc    Get all posts
 // @route   GET /api/posts
 // @access  Public

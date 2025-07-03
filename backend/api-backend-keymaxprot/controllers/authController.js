@@ -99,11 +99,19 @@ exports.logout = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/auth/cambiar-password
 // @access  Private
 exports.cambiarPassword = asyncHandler(async (req, res, next) => {
-  // Placeholder for changing user password logic
-  res.status(200).json({
-    success: true,
-    message: 'cambiarPassword function placeholder',
-  });
+  const user = await User.findById(req.user.id).select('+password');
+
+  // Verificar contraseña actual
+  const isMatch = await bcrypt.compare(req.body.currentPassword, user.password);
+  if (!isMatch) {
+    return next(new ErrorResponse('La contraseña actual es incorrecta', 401));
+  }
+
+  // Actualizar contraseña
+  user.password = req.body.newPassword;
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
 });
 
 
@@ -152,10 +160,33 @@ const sendTokenResponse = (user, statusCode, res) => {
 // @route   PUT /api/auth/perfil
 // @access  Private
 exports.actualizarPerfil = asyncHandler(async (req, res, next) => {
-  // Placeholder for updating user profile logic
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    return next(new ErrorResponse('Usuario no encontrado', 404));
+  }
+
+  // Actualizar campos de perfil
+  if (req.body.name) user.profile.name = req.body.name.trim();
+  if (req.body.lastName) user.profile.lastName = req.body.lastName.trim();
+  if (req.body.address) user.profile.address = req.body.address.trim();
+  if (req.body.phone) user.profile.phone = req.body.phone.trim();
+
+  // Generar avatar si se proporciona nombre o apellido
+  if (user.profile.name || user.profile.lastName) {
+    const firstName = user.profile.name || '';
+    const lastName = user.profile.lastName || '';
+    user.profile.avatar = `https://avatar.iran.liara.run/username?username=${firstName}+${lastName}`;
+  }
+
+  // Actualizar email si se proporciona
+  if (req.body.email) user.email = req.body.email.toLowerCase().trim();
+
+  await user.save();
+
   res.status(200).json({
     success: true,
-    message: 'actualizarPerfil function placeholder',
+    data: user
   });
 });
 
@@ -163,9 +194,34 @@ exports.actualizarPerfil = asyncHandler(async (req, res, next) => {
 // @route   DELETE /api/auth/desactivar
 // @access  Private
 exports.desactivarCuenta = asyncHandler(async (req, res, next) => {
-  // Placeholder for deactivating user account logic
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  res.cookie('token', 'none', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+
   res.status(200).json({
     success: true,
-    message: 'desactivarCuenta function placeholder',
+    data: {}
+  });
+});
+
+
+
+// @desc    Deactivate user account
+// @route   DELETE /api/auth/desactivar
+// @access  Private
+exports.desactivarCuenta = asyncHandler(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  res.cookie('token', 'none', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+
+  res.status(200).json({
+    success: true,
+    data: {}
   });
 });

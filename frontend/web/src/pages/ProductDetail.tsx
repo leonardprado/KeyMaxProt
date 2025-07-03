@@ -19,6 +19,7 @@ import apiClient from '../api/axiosConfig'; // Asegúrate que la ruta sea correc
 import { Spin, Alert } from 'antd'; // Usaremos Spin y Alert para los estados de carga y errores
 import { useToast } from '@/hooks/use-toast'; // Importar useToast
 import AddReviewForm from '../components/AddReviewForm'; // Importa el componente del formulario
+import ReviewsList from '../components/ReviewsList'; // Importa el componente de la lista de reseñas
 
 const ProductDetail = () => {
   const { id } = useParams(); // Obtiene el ID del producto de la URL
@@ -144,20 +145,28 @@ const ProductDetail = () => {
   const productFeatures = product.features || [];
   // Lógica para obtener reseñas
   const [reviews, setReviews] = useState([]);
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const [reviewsError, setReviewsError] = useState<string | null>(null);
 
-  // Lógica para obtener reseñas
-  const fetchReviews = async () => {
+  // Lógica para obtener reseñas y actualizar el producto
+  const fetchReviewsAndProduct = async () => {
     if (!id) return;
     setReviewsLoading(true);
     setReviewsError(null);
     try {
-      // Asumiendo que tienes una ruta en el backend como /api/reviews/item/:itemType/:itemId
-      const response = await apiClient.get(`/api/reviews/item/Product/${id}`);
-      setReviews(response.data.data);
+      // Obtener el producto actualizado (con averageRating y reviewCount)
+      const productResponse = await apiClient.get(`/products/${id}`);
+      setProduct(productResponse.data.data);
+      setAverageRating(productResponse.data.data.averageRating || 0);
+      setReviewCount(productResponse.data.data.reviewCount || 0);
+
+      // Obtener las reseñas
+      const reviewsResponse = await apiClient.get(`/reviews/product/${id}`);
+      setReviews(reviewsResponse.data.data);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Error al cargar las reseñas.';
+      const errorMessage = err.response?.data?.message || 'Error al cargar las reseñas o el producto.';
       setReviewsError(errorMessage);
       toast({
         title: 'Error',
@@ -171,10 +180,17 @@ const ProductDetail = () => {
   };
 
   useEffect(() => {
-    fetchReviews();
-  }, [id, toast]); // Se ejecuta cuando cambia el ID del producto 
+    fetchReviewsAndProduct();
+  }, [id, toast]); // Se ejecuta cuando cambia el ID del producto
+
+  // Función para manejar el envío de una nueva reseña
+  const handleReviewSubmitted = () => {
+    fetchReviewsAndProduct(); // Vuelve a cargar las reseñas y el producto para actualizar la UI
+  }; 
 
   return (
+    <div>
+      
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
@@ -198,6 +214,30 @@ const ProductDetail = () => {
                 className="w-full h-full object-cover"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Sección de Reseñas */}
+        <div className="mt-12">
+          <h2 className="text-3xl font-bold mb-6">Reseñas de Clientes</h2>
+          {reviewsLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <Spin size="large" tip="Cargando reseñas..." />
+            </div>
+          ) : reviewsError ? (
+            <Alert message="Error" description={reviewsError} type="error" showIcon />
+          ) : (
+            <ReviewsList reviews={reviews} averageRating={averageRating} reviewCount={reviewCount} />
+          )}
+
+          <div className="mt-8">
+            <h3 className="text-2xl font-bold mb-4">Deja tu Reseña</h3>
+            <AddReviewForm itemType="Product" itemId={id} onReviewAdded={handleReviewSubmitted} />
+          </div>
+        </div>
+      </div>
+    </div>
+  
             <div className="grid grid-cols-4 gap-2">
               {productImages.map((image: string, index: number) => (
                 <button
@@ -213,9 +253,9 @@ const ProductDetail = () => {
                 </button>
               ))}
             </div>
-          </div>
+          
 
-          {/* Información del producto (sin cambios, pero ahora usa datos de la API) */}
+     
           <div className="space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -317,7 +357,7 @@ const ProductDetail = () => {
               </div>
             </div>
           </div>
-        </div>
+        
 
         <div className="mt-12">
           {/* Aquí podrías añadir más secciones como descripción detallada, especificaciones, etc. */}
@@ -328,7 +368,7 @@ const ProductDetail = () => {
             </CardContent>
           </Card>
       </div>
-    </div>
+   
 
         {/* Sección de Reseñas */}
         <div className="mt-16 space-y-8">
@@ -366,7 +406,7 @@ const ProductDetail = () => {
           )}
 
           {/* Formulario para añadir reseña */}
-          <AddReviewForm itemType="Product" itemId={id} onReviewAdded={fetchReviews} />
+          <AddReviewForm itemType="Product" itemId={id} onReviewAdded={handleReviewSubmitted} />
 
       </div>
     </div>

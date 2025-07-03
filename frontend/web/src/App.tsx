@@ -17,6 +17,7 @@ import ContactPage from './pages/ContactPage';
 import FAQPage from './pages/FAQPage';
 import ProductDetail from './pages/ProductDetail';
 import ServiceDetail from './pages/ServiceDetail'; // Importa ServiceDetail
+import SearchResultsPage from './pages/SearchResultsPage';
 import ShopDetail from './pages/ShopDetail'; // Importa ShopDetail
 
 // Páginas de Autenticación y Perfil (sin el MainLayout)
@@ -63,6 +64,7 @@ function App() {
         {/* --- Aquí se añade la ruta para las citas del usuario --- */}
         <Route path="/my-appointments" element={<Appointments />} />
         <Route path="/book-appointment" element={<AppointmentPage />} /> {/* <-- Agrega la ruta para reservar citas también */}
+        <Route path="/search" element={<SearchResultsPage />} />
       </Route>
       
       {/* --- Rutas del Dashboard de Admin (Protegidas) --- */}

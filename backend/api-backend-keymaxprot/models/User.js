@@ -31,10 +31,13 @@ const userSchema = new mongoose.Schema({
         default: null
     },
     profile: {
-        name: { type: String },
+        name: { type: String,
+            default: 'sin nombre'
+         },
         lastName: { type: String },
         address: { type: String },
-        phone: { type: String }
+        phone: { type: String },
+        avatar: { type: String }
     },
     vehicles: [{
         type: mongoose.Schema.Types.ObjectId,

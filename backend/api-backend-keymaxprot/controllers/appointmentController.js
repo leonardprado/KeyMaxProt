@@ -1,5 +1,5 @@
 const { Appointment, User, Vehicle, Shop} = require('../models/AllModels');
-const APIFeatures = require('../utils/apiFeatures');
+const APIFeatures = require('../utils/APIFeatures');
 const asyncHandler = require('../middleware/asyncHandler');
 
 // @desc    Create a new appointment

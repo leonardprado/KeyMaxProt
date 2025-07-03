@@ -18,10 +18,12 @@ const Profile = () => {
   
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    name: user?.profile?.name || '',
+    lastName: user?.profile?.lastName || '',
     email: user?.email || '',
-    phone: user?.phone || '',
-    address: user?.address || ''
+    phone: user?.profile?.phone || '',
+    address: user?.profile?.address || '',
+    avatar: user?.profile?.avatar || ''
   });
 
   const handleSave = async () => {
@@ -88,9 +90,18 @@ const Profile = () => {
       <ImprovedNavigation />
       
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Mi Perfil</h1>
-          <p className="text-slate-600">Gestiona tu información personal y revisa tu actividad</p>
+        <div className="mb-8 flex items-center gap-4">
+          {user.profile?.avatar && (
+            <img
+              src={user.profile.avatar}
+              alt="Avatar de usuario"
+              className="w-20 h-20 rounded-full object-cover border-2 border-blue-400 shadow-md"
+            />
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2">Mi Perfil</h1>
+            <p className="text-slate-600">Gestiona tu información personal y revisa tu actividad</p>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -115,11 +126,20 @@ const Profile = () => {
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nombre completo</Label>
+                    <Label htmlFor="name">Nombre</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Apellido</Label>
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                       disabled={!isEditing}
                     />
                   </div>
@@ -165,9 +185,19 @@ const Profile = () => {
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         user.role === 'admin' 
                           ? 'bg-purple-100 text-purple-700' 
+                          : user.role === 'tecnico' 
+                          ? 'bg-green-100 text-green-700' 
+                          : user.role === 'shop_owner' 
+                          ? 'bg-yellow-100 text-yellow-700' 
+                          : user.role === 'superadmin' 
+                          ? 'bg-red-100 text-red-700' 
                           : 'bg-blue-100 text-blue-700'
                       }`}>
-                        {user.role === 'admin' ? 'Administrador' : 'Cliente'}
+                        {user.role === 'admin' ? 'Administrador' : 
+                         user.role === 'tecnico' ? 'Técnico' : 
+                         user.role === 'shop_owner' ? 'Propietario de Tienda' : 
+                         user.role === 'superadmin' ? 'Super Administrador' : 
+                         'Cliente'}
                       </span>
                     </div>
                   </div>

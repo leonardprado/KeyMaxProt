@@ -18,8 +18,10 @@ const Marketplace = () => {
   const [services, setServices] = useState([]);
   const [productCategories, setProductCategories] = useState([]);
   const [serviceCategories, setServiceCategories] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [priceRange, setPriceRange] = useState([0, 1000]); // Rango de precios inicial
   
-  // ... resto de tus estados (searchTerm, etc.)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -52,10 +54,16 @@ const Marketplace = () => {
       setLoading(true);
       setError(null);
       try {
-        // ... tu lógica de params ...
+        const params = {
+          search: searchTerm,
+          category: selectedCategory === 'all' ? undefined : selectedCategory,
+          minPrice: priceRange[0],
+          maxPrice: priceRange[1],
+        };
+
         const [productRes, serviceRes] = await Promise.all([
-          apiClient.get('/products'/*, { params }*/),
-          apiClient.get('/service-catalog'/*, { params }*/) // <-- RUTA CORREGIDA
+          apiClient.get('/products', { params }),
+          apiClient.get('/service-catalog', { params }) // <-- RUTA CORREGIDA
         ]);
         
         setProducts(productRes.data.data || []);
@@ -79,7 +87,7 @@ const Marketplace = () => {
       }
     };
     fetchData();
-  }, [/* searchTerm, category, priceRange, page */]); // Dependencias
+  }, [searchTerm, selectedCategory, priceRange]); // Dependencias
 
   // Combinar categorías sin duplicados para el <Select>
   const allCategories = [...new Set([...productCategories, ...serviceCategories])];
@@ -116,10 +124,19 @@ const Marketplace = () => {
           <div className="col-span-1">
             <h2 className="text-2xl font-bold mb-4">Filtros</h2>
             <div className="space-y-4">
-              {/* ... tu input de búsqueda ... */}
+              <div>
+                <label htmlFor="search" className="block text-sm font-medium text-gray-700">Buscar</label>
+                <Input
+                  id="search"
+                  type="text"
+                  placeholder="Buscar productos o servicios..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
               <div>
                 <label htmlFor="category" className="block text-sm font-medium text-gray-700">Categoría</label>
-                <Select /* ... */ >
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar categoría" />
                   </SelectTrigger>
@@ -132,7 +149,22 @@ const Marketplace = () => {
                   </SelectContent>
                 </Select>
               </div>
-              {/* ... tu slider de precio ... */}
+              <div>
+                <label htmlFor="price-range" className="block text-sm font-medium text-gray-700">Rango de Precio</label>
+                <Slider
+                  id="price-range"
+                  min={0}
+                  max={1000}
+                  step={10}
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  className="w-[100%]"
+                />
+                <div className="flex justify-between text-sm text-gray-600 mt-2">
+                  <span>${priceRange[0]}</span>
+                  <span>${priceRange[1]}</span>
+                </div>
+              </div>
             </div>
           </div>
           {/* Contenido principal */}

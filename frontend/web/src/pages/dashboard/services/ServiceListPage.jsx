@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Modal, message, Spin, Alert, Typography, Pagination } from 'antd'; // Importa Pagination
+import { Table, Button, Space, Modal, Spin, Alert, Typography, Pagination } from 'antd'; // Importa Pagination
+import { useToast } from '@/hooks/use-toast';
 import { EditOutlined, DeleteOutlined, PlusOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import axiosInstance from '../../../api/axiosConfig';
 import { Link } from 'react-router-dom';
@@ -13,6 +14,7 @@ const ServiceListPage = () => {
   const [currentPage, setCurrentPage] = useState(1); // Estado para la página actual
   const [pageSize] = useState(10); // Número de servicios por página (pageSize)
   const [totalItems, setTotalItems] = useState(0); // Estado para el total de servicios (total)
+  const { toast } = useToast();
   // Puedes añadir estados para los filtros aquí
 
   useEffect(() => {
@@ -35,7 +37,11 @@ const ServiceListPage = () => {
       setTotalItems(response.data.totalDocs); // Asumiendo que el total está en response.data.totalDocs
     } catch (err) {
       setError(err);
-      message.error('Error al cargar los servicios del catálogo.');
+      toast({
+        title: 'Error',
+        description: 'Error al cargar los servicios del catálogo.',
+        variant: 'destructive',
+      });
       console.error('Error fetching service catalog:', err);
     } finally {
       setLoading(false);
@@ -58,10 +64,18 @@ const ServiceListPage = () => {
       onOk: async () => {
         try {
           await axiosInstance.delete(`/service-catalog/${serviceId}`);
-          message.success('Servicio del catálogo eliminado exitosamente.');
+          toast({
+            title: 'Éxito',
+            description: 'Servicio del catálogo eliminado exitosamente.',
+            variant: 'success',
+          });
           fetchServices();
         } catch (error) {
-          message.error('Error al eliminar el servicio del catálogo.');
+          toast({
+            title: 'Error',
+            description: 'Error al eliminar el servicio del catálogo.',
+            variant: 'destructive',
+          });
           console.error('Error deleting service catalog:', error);
         }
       },

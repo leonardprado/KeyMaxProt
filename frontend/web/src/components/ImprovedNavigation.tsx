@@ -1,18 +1,19 @@
-
 import { useState } from 'react';
-import { Menu, X, Calendar, User, ShoppingCart, Store, LogOut, Settings, Home } from 'lucide-react';
+import { Menu, X, Calendar, User as UserIcon, ShoppingCart, Store, LogOut, Settings, Home } from 'lucide-react'; // Renombrado User a UserIcon
 import { ModeToggle } from '@/components/ui/mode-toggle';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import NotificationCenter from './NotificationCenter';
+import GlobalSearchBar from './GlobalSearchBar';
 
 const ImprovedNavigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { totalItems } = useCart();
-  const { user, logout, isAuthenticated } = useAuth();
+  // Importa isLoading para saber si la autenticación está cargando
+  const { user, isLoading: authLoading, logout, isAuthenticated } = useAuth(); 
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -27,8 +28,10 @@ const ImprovedNavigation = () => {
 
   const scrollToSection = (sectionId: string) => {
     if (location.pathname !== '/') {
+      // Si no estamos en la página principal, navegamos a la sección usando la URL
       window.location.href = `/#${sectionId}`;
     } else {
+      // Si estamos en la página principal, hacemos scroll suave
       const element = document.getElementById(sectionId);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
@@ -36,6 +39,10 @@ const ImprovedNavigation = () => {
     }
     setIsMenuOpen(false);
   };
+
+  // Accede a las propiedades del usuario de forma segura
+  const userName = user?.profile?.name?.split(' ')[0]; // Toma solo el primer nombre
+  const userRole = user?.role;
 
   return (
     <>
@@ -47,6 +54,7 @@ const ImprovedNavigation = () => {
           </Link>
         </div>
         <div className="flex items-baseline space-x-8">
+          <GlobalSearchBar />
           <Link to="/marketplace" className="text-foreground/80 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
             Marketplace
           </Link>
@@ -75,20 +83,44 @@ const ImprovedNavigation = () => {
           </button>
           {/* ModeToggle for Desktop */}
           <ModeToggle />
-          {isAuthenticated ? (
+          
+          {/* --- LÓGICA DE AUTENTICACIÓN SEGURA --- */}
+          {authLoading ? ( // Mostrar un estado de carga si la autenticación aún está procesándose
+            <Button variant="outline" size="sm" disabled>
+              <UserIcon className="w-4 h-4 mr-2" />
+              Cargando...
+            </Button>
+          ) : isAuthenticated ? ( // Si el usuario está autenticado
             <div className="flex items-center space-x-2">
-              <Link to="/profile"><Button variant="outline" size="sm"><User className="w-4 h-4 mr-2" />{user?.name || 'Perfil'}</Button></Link>
-              {user?.role === 'admin' && <Link to="/admin"><Button variant="outline" size="sm"><Settings className="w-4 h-4 mr-2" />Admin</Button></Link>}
-              <Button variant="destructive" size="sm" onClick={handleLogout}><LogOut className="w-4 h-4" /></Button>
+              <Link to="/profile">
+                <Button variant="outline" size="sm">
+                  <UserIcon className="w-4 h-4 mr-2" />
+                  {/* Acceso seguro a userName */}
+                  {userName || 'Perfil'} 
+                </Button>
+              </Link>
+              {/* Mostrar enlace de Admin solo si el rol es admin */}
+              {userRole === 'admin' && (
+                <Link to="/admin">
+                  <Button variant="outline" size="sm"><Settings className="w-4 h-4 mr-2" />Admin</Button>
+                </Link>
+              )}
+              <Button variant="destructive" size="sm" onClick={handleLogout}>
+                <LogOut className="w-4 h-4" />
+              </Button>
             </div>
-          ) : (
-            <Button variant="outline" size="sm" onClick={handleAuthClick}><User className="w-4 h-4 mr-2" />Iniciar Sesión</Button>
+          ) : ( // Si no está autenticado
+            <Button variant="outline" size="sm" onClick={handleAuthClick}>
+              <UserIcon className="w-4 h-4 mr-2" />
+              Iniciar Sesión
+            </Button>
           )}
+          
           <Link to="/book-appointment"><Button size="sm" variant="secondary"><Calendar className="w-4 h-4 mr-2" />Agendar Cita</Button></Link>
           <Link to="/my-appointments" className="text-foreground/80 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
             Mis Citas
           </Link>
-          <ModeToggle />
+          <ModeToggle /> {/* Mover ModeToggle aquí para evitar duplicidad */}
         </div>
       </nav>
 
@@ -110,23 +142,25 @@ const ImprovedNavigation = () => {
               </Button>
             </div>
           </Link>
+        
+    
           <button onClick={() => setIsCartOpen(!isCartOpen)} className={`relative flex flex-col items-center justify-center text-xs font-medium ${isCartOpen ? 'text-primary' : 'text-foreground/80'}`}>
             <ShoppingCart className="w-6 h-6 mb-1" />
             Carrito
             {totalItems > 0 && (
-              <span className="absolute -top-1 right-1 bg-destructive text-destructive-foreground text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
                 {totalItems}
               </span>
             )}
           </button>
           <Link to="/profile" className={`flex flex-col items-center justify-center text-xs font-medium ${location.pathname.startsWith('/profile') ? 'text-primary' : 'text-foreground/80'}`}>
-            <User className="w-6 h-6 mb-1" />
+            <UserIcon className="w-6 h-6 mb-1" />
             Perfil
           </Link>
           <Link to="/my-appointments" className={`flex flex-col items-center justify-center text-xs font-medium ${location.pathname.startsWith('/my-appointments') ? 'text-primary' : 'text-foreground/80'}`}>
             <Calendar className="w-6 h-6 mb-1" />
             Mis Citas
-          </Link>
+          </Link >
           {/* ModeToggle for Mobile */}
           <ModeToggle />
         </div>
@@ -149,8 +183,6 @@ const ImprovedNavigation = () => {
           </div>
         </div>
       )}
-
-
     </>
   );
 };

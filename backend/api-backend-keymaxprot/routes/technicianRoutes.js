@@ -119,6 +119,6 @@ router.route('/')
 
 router.route('/:id')
   .get(getTechnician)
-  .put(protect, updateTechnician);
+  .put(protect, authorize(['tecnico', 'admin', 'shop_owner']), updateTechnician);
 
 module.exports = router;

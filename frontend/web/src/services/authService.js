@@ -30,13 +30,13 @@ const logout = () => {
   localStorage.removeItem('keymax_user');
 };
 
-const updateProfile = async (userId, userData) => {
+const updateProfile = async ({ name, lastName, email, phone, address }) => {
   // Obtener el token del usuario autenticado desde localStorage
   const storedUser = localStorage.getItem('keymax_user');
   let token = null;
   if (storedUser) {
     const user = JSON.parse(storedUser);
-    token = user.token; // Asumiendo que el token se guarda junto con los datos del usuario
+    token = JSON.parse(storedUser).token; // Asumiendo que el token se guarda junto con los datos del usuario
   }
 
   // Configurar headers con el token
@@ -48,7 +48,13 @@ const updateProfile = async (userId, userData) => {
 
   // Realizar la llamada PUT a la ruta de actualización de perfil
   try {
-    const response = await axios.put(`${API_URL}/perfil`, userData, config);
+    const response = await axios.put(`${API_URL}/perfil`, {
+      email,
+      name,
+      lastName,
+      phone,
+      address
+    }, config);
 
     // Opcional: Actualizar el usuario en localStorage con los nuevos datos si la API retorna el usuario actualizado
     // if (response.data.user) {

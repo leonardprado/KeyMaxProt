@@ -9,10 +9,36 @@ class APIFeatures {
         const excludedFields = ['page', 'sort', 'limit', 'fields'];
         excludedFields.forEach(el => delete queryObj[el]);
 
+        // 1B) Advanced filtering (gte, gt, lte, lt) for price
         let queryStr = JSON.stringify(queryObj);
         queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
+        let finalQuery = JSON.parse(queryStr);
 
-        this.query = this.query.find(JSON.parse(queryStr));
+        // 2) Implement search functionality
+        if (this.queryString.search) {
+            finalQuery.$or = [
+                { name: { $regex: this.queryString.search, $options: 'i' } },
+                { description: { $regex: this.queryString.search, $options: 'i' } }
+            ];
+        }
+
+        // 3) Implement category filtering
+        if (this.queryString.category) {
+            finalQuery.category = this.queryString.category;
+        }
+
+        // 4) Implement price range filtering
+        if (this.queryString.minPrice || this.queryString.maxPrice) {
+            finalQuery.price = {};
+            if (this.queryString.minPrice) {
+                finalQuery.price.$gte = parseFloat(this.queryString.minPrice);
+            }
+            if (this.queryString.maxPrice) {
+                finalQuery.price.$lte = parseFloat(this.queryString.maxPrice);
+            }
+        }
+
+        this.query = this.query.find(finalQuery);
 
         return this;
     }

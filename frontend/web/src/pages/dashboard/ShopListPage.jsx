@@ -128,7 +128,9 @@ const ShopListPage = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Button variant="link" className="text-primary">Ver Detalles</Button>
+                      <Link to={`/shop-detail/${shop._id}`}>
+                        <Button variant="link" className="text-primary">Ver Detalles</Button>
+                      </Link>
                     </td>
                   </tr>
                 ))}

@@ -1,16 +1,20 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import { useToast } from '@/hooks/use-toast';
 
 export interface User {
   id: string;
   email: string;
-  name: string;
-  phone?: string;
-  address?: string;
-  avatar?: string;
-  role: 'customer' | 'admin';
+  profile: {
+    name?: string;
+    lastName?: string;
+    address?: string;
+    phone?: string;
+    avatar?: string;
+  };
+  role: 'user' | 'admin' | 'tecnico' | 'shop_owner' | 'superadmin';
   createdAt: Date;
   preferences?: {
     notifications: boolean;
@@ -126,10 +130,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const navigate = useNavigate();
+
   const logout = () => {
     authService.logout();
     setUser(null);
     localStorage.removeItem('keymax_user');
+    navigate('/'); // Redirigir al usuario a la página de inicio después de cerrar sesión
   };
 
   const updateProfile = async (data: Partial<User>): Promise<boolean> => {
@@ -138,12 +145,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       // Llamada real a la API para actualizar el perfil
-      const updatedUserData = await authService.updateProfile(user.id, data); // Assuming authService has an updateProfile method
+      const updatedUserData = await authService.updateProfile(data);
 
       // Update user in state and localStorage
-      const updatedUser = { ...user, ...updatedUserData };
+      const updatedUser = { ...user, ...updatedUserData.data }; // Acceder a data.data
       setUser(updatedUser);
       localStorage.setItem('keymax_user', JSON.stringify(updatedUser));
+
+      toast({
+        title: 'Éxito',
+        description: 'Perfil actualizado correctamente.',
+        variant: 'default',
+      });
 
       setIsLoading(false);
       return true;

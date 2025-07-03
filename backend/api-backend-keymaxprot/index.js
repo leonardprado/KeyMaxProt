@@ -10,7 +10,7 @@ const rateLimit = require('express-rate-limit');
 const colors = require('colors');
 const swaggerUi = require('swagger-ui-express');
 const mercadopago = require("mercadopago");
-
+const aiRoutes = require('./routes/aiRoutes');
 // Importaciones de la aplicación
 const connectDB = require('./config/database');
 const swaggerDocs = require('./config/swaggerConfig'); // <-- Importamos la config de Swagger
@@ -20,6 +20,7 @@ const errorHandler = require('./middleware/errorMiddleware');
 const startMaintenanceNotifier = require('./workers/maintenanceNotifier');
 
 // Rutas
+
 const authRoutes = require('./routes/authRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const vehicleRoutes = require('./routes/vehicleRoutes');
@@ -34,6 +35,7 @@ const threadRoutes = require('./routes/threadRoutes');
 const postRoutes = require('./routes/postRoutes');
 const technicianRoutes = require('./routes/technicianRoutes');
 const statsRoutes = require('./routes/statsRoutes');
+const searchRoutes = require('./routes/searchRoutes');
 
 // Inicializar la aplicación Express
 const app = express();
@@ -43,7 +45,7 @@ app.use(express.json()); // Para parsear JSON
 app.use(cors({
     origin: ['http://localhost:8080', 'http://localhost:5173'] // Acepta ambos puertos
 }));
-
+app.use('/api/ai', aiRoutes);
 // Middlewares de Seguridad
 app.use(helmet());
 const limiter = rateLimit({
@@ -72,6 +74,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/threads', threadRoutes);
 app.use('/api/technicians', technicianRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/search', searchRoutes);
 // `postRoutes` es usado dentro de `threadRoutes`, no necesita montarse aquí.
 
 // Ruta de Documentación de la API (Swagger)

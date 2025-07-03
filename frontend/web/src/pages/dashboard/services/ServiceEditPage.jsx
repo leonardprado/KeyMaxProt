@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, InputNumber } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { useToast } from '../../../../components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 
 const ServiceEditPage = () => {

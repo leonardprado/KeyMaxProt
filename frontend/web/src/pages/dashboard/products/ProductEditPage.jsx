@@ -5,7 +5,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import { useDropzone } from 'react-dropzone';
 import apiClient from '../../../api/axiosConfig';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useToast } from '../../../../components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const { Title } = Typography;
 const { Option } = Select;

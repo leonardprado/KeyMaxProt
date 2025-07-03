@@ -7,7 +7,7 @@ const {
   deleteReview,
 } = require('../controllers/reviewController');
 
-const { protect } = require('../middleware/authMiddleware');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
 /**
  * @swagger
@@ -17,6 +17,9 @@ const { protect } = require('../middleware/authMiddleware');
  */
 
 // Routes for reviews related to a specific item
+// Route for getting reviews for a specific product
+router.route('/product/:productId').get(getReviewsByItem);
+
 router.route('/item/:itemType/:itemId')
   /**
    * @swagger
@@ -223,7 +226,7 @@ router.route('/:id')
    *       500:
    *         description: Server error
    */
-  .patch(protect, updateReview)
+  .patch(protect, authorize(['user', 'admin']), updateReview)
   /**
    * @swagger
    * /api/reviews/{id}:
@@ -260,6 +263,6 @@ router.route('/:id')
    *       500:
    *         description: Server error
    */
-  .delete(protect, deleteReview);
+  .delete(protect, authorize(['user', 'admin']), deleteReview);
 
 module.exports = router;

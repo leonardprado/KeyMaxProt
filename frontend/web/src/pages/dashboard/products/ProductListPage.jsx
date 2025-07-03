@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Modal, message, Pagination } from 'antd'; // Importa Pagination si no está ya
+import { Table, Button, Space, Modal, Pagination } from 'antd'; // Importa Pagination si no está ya
+import { useToast } from '@/hooks/use-toast';
 import { EditOutlined, DeleteOutlined, PlusOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import axiosInstance from '../../../api/axiosConfig';
 import { Link } from 'react-router-dom';
@@ -12,6 +13,7 @@ const ProductListPage = () => {
   const [currentPage, setCurrentPage] = useState(1); // Estado para la página actual
   const [pageSize] = useState(10); // Número de productos por página (pageSize)
   const [totalItems, setTotalItems] = useState(0); // Estado para el total de productos (total)
+  const { toast } = useToast();
   // Puedes añadir estados para los filtros aquí, por ejemplo:
   // const [filters, setFilters] = useState({});
 
@@ -34,7 +36,11 @@ const ProductListPage = () => {
       setProducts(response.data.data); // Asumiendo que los datos paginados están en response.data.data
       setTotalItems(response.data.totalDocs); // Asumiendo que el total está en response.data.totalDocs
     } catch (error) {
-      message.error('Error al cargar los productos.');
+      toast({
+        title: 'Error',
+        description: 'Error al cargar los productos.',
+        variant: 'destructive',
+      });
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
@@ -57,10 +63,18 @@ const ProductListPage = () => {
       onOk: async () => {
         try {
           await axiosInstance.delete(`/products/${productId}`);
-          message.success('Producto eliminado exitosamente.');
+          toast({
+            title: 'Éxito',
+            description: 'Producto eliminado exitosamente.',
+            variant: 'success',
+          });
           fetchProducts();
         } catch (error) {
-          message.error('Error al eliminar el producto.');
+          toast({
+            title: 'Error',
+            description: 'Error al eliminar el producto.',
+            variant: 'destructive',
+          });
           console.error('Error deleting product:', error);
         }
       },
