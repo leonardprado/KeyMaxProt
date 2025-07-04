@@ -14,7 +14,7 @@ const APIFeatures = require('../utils/apiFeatures');
  
    // Añadir la referencia del vehículo al documento del usuario 
    await User.findByIdAndUpdate(req.user.id, { 
-     $push: { vehicle_ids: vehicle._id } 
+     $push: { vehicles: vehicle._id } // CORREGIDO: Usar 'vehicles' para consistencia con el worker y el modelo
    }); 
    
    res.status(201).json({ 
@@ -115,7 +115,7 @@ const APIFeatures = require('../utils/apiFeatures');
    const userIds = vehicle.ownership.map(o => o.user_id); 
    await User.updateMany( 
      { _id: { $in: userIds } }, 
-     { $pull: { vehicle_ids: vehicle._id } } 
+     { $pull: { vehicles: vehicle._id } } // CORREGIDO: Usar 'vehicles' para consistencia
    ); 
  
    await vehicle.remove(); 

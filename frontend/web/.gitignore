@@ -1,4 +1,17 @@
-# Logs
+# Ignorar archivos de configuración de entorno y secretos
+.env
+.env.*
+!.env.example # Mantener el archivo de ejemplo de variables de entorno
+
+# Ignorar claves y credenciales de servicios (ej. Firebase, Cloudinary)
+# Asegúrate de que estos archivos NUNCA estén en el repositorio
+firebase-service-account.json
+*.env.local
+*.env.development.local
+*.env.production.local
+*.env.test.local
+
+# Ignorar archivos de logs
 logs
 *.log
 npm-debug.log*
@@ -7,18 +20,116 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Ignorar dependencias y builds
 node_modules
+.pnpm-debug.log*
+yarn-error.log*
 dist
 dist-ssr
-*.local
+build
+out # Para Next.js, si se usara
+.next # Para Next.js, si se usara
+.vercel # Para Vercel deployments
 
-# Editor directories and files
+# Ignorar archivos específicos del sistema operativo y editores
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+*.DS_Store
+
+# Ignorar configuraciones de IDEs y editores
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+*.iml
+*.ipr
+*.iws
+*.sw? # Archivos temporales de Vim
+
+# Ignorar archivos de compilación y temporales de Flutter
+# build/ # Descomentar si quieres ignorar todo el directorio build de Flutter
+ios/Flutter/App.framework
+ios/Flutter/App.podbundle
+ios/Flutter/flutter_export_package
+ios/.symlinks
+ios/Pods
+ios/Runner.xcodeproj/project.xcworkspace
+ios/Runner.xcworkspace
+android/.gradle
+android/app/build
+android/app/src/main/kotlin/com/keymaxprot_mobile/app/MainActivity.kt.bak
+android/local.properties
+
+# Ignorar archivos de build de Vite (frontend web)
+dist
+dist-ssr
+
+# Ignorar archivos de build de Vite (frontend web)
+vite.config.ts # Si es solo de configuración, puede que no necesite ignorarse, pero builds sí.
+dist
+
+# Ignorar logs y builds de Vite
+dist
+dist-ssr
+*.log
+
+# Ignorar archivos generados por `npm run dev` si es que se crean
+.vite/
+
+# Ignorar cache de React (si se usa)
+node_modules/.cache
+
+# Ignorar archivos de configuracion del linter si los tienes duplicados
+.eslintrc.js
+.eslintrc.cjs
+
+# Ignorar archivos de tests si se genera algún archivo temporal
+*.test.ts
+*.test.js
+
+# Ignorar archivos de configuración de tailwind si se generan automáticamente
+tailwind.config.js
+tailwind.config.ts # Mantener si es el original y solo ignorar los builds
+
+# Archivos de despliegue y configuración de CI/CD
+.env.production
+.env.development
+
+# Archivos de SonarQube
+sonar-project.properties
+
+# Node Sass cache
+sass_cache/
+node-sass-cache/
+
+# Ignorar archivos temporales de Ant Design si es que se crean
+.temp_ant_design/
+
+# Firebase emulators data
+firebase-debug.log
+firebase-debug.*.log
+
+# Flutter testing artifacts
+.flutter-plugins-cache
+.flutter_test_output
+
+# Ignorar datos de caché de builds de Flutter
+.flutter_build_cache
+
+# Ignorar archivos de configuracion de Docker si los tienes
+.dockerignore
+docker-compose.yml
+
+# Ignorar credenciales para despliegues específicos (ej. AWS, GCP)
+# ~/.aws/credentials
+# ~/.config/gcloud/application_default_credentials.json
+
+# Ignorar archivos de autenticación de Cloudinary, si se almacenan localmente
+# .cloudinary_config
+
+# Dependencias de Python (si tuvieras algún script)
+venv/
+*.pyc
+__pycache__/

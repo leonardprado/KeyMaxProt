@@ -8,17 +8,17 @@ const APIFeatures = require('../utils/apiFeatures');
 // @access  Private (solo usuarios con rol 'tecnico' o 'admin' o 'shop_owner')
 exports.createTechnicianProfile = asyncHandler(async (req, res, next) => {
     const { name, specialty, contact, shops, availability } = req.body;
-    const user_id = req.user.id; // ID del usuario autenticado
+    const user = req.user.id; // REFACTOR: Usar 'user' en lugar de 'user_id'
 
     // Verificar si ya existe un perfil de técnico para este user_id
-    const existingTechnician = await Technician.findOne({ user_id });
+    const existingTechnician = await Technician.findOne({ user });
     if (existingTechnician) {
         return next(new ErrorResponse('Ya existe un perfil de técnico para este usuario', 400));
     }
 
     // Crear el perfil del técnico
     const technician = await Technician.create({
-        user_id,
+        user,
         name,
         specialty,
         contact,
@@ -47,7 +47,7 @@ exports.createTechnicianProfile = asyncHandler(async (req, res, next) => {
 // @route   GET /api/technicians
 // @access  Public
 exports.getTechnicians = asyncHandler(async (req, res, next) => {
-    const features = new APIFeatures(Technician.find().populate('user_id', 'name email').populate('shops', 'name address'), req.query)
+    const features = new APIFeatures(Technician.find().populate('user', 'name email').populate('shops', 'name address'), req.query) // REFACTOR: populate 'user'
         .filter()
         .sort()
         .limitFields()
@@ -66,7 +66,7 @@ exports.getTechnicians = asyncHandler(async (req, res, next) => {
 // @route   GET /api/technicians/:id
 // @access  Public
 exports.getTechnician = asyncHandler(async (req, res, next) => {
-    const technician = await Technician.findById(req.params.id).populate('user_id', 'name email').populate('shops', 'name address');
+    const technician = await Technician.findById(req.params.id).populate('user', 'name email').populate('shops', 'name address'); // REFACTOR: populate 'user'
 
     if (!technician) {
         return next(new ErrorResponse(`No se encontró técnico con ID ${req.params.id}`, 404));
@@ -89,7 +89,7 @@ exports.updateTechnician = asyncHandler(async (req, res, next) => {
     }
 
     // Asegurarse de que el usuario es el propietario del perfil o un admin
-    if (technician.user_id.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (technician.user.toString() !== req.user.id && req.user.role !== 'admin') { // REFACTOR: comparar con 'user'
         return next(new ErrorResponse(`Usuario ${req.user.id} no autorizado para actualizar este perfil de técnico`, 401));
     }
 
@@ -143,7 +143,7 @@ exports.deleteTechnicianProfile = asyncHandler(async (req, res, next) => {
     }
 
     // Asegurarse de que el usuario es el propietario del perfil o un admin
-    if (technician.user_id.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (technician.user.toString() !== req.user.id && req.user.role !== 'admin') { // REFACTOR: comparar con 'user'
         return next(new ErrorResponse(`Usuario ${req.user.id} no autorizado para eliminar este perfil de técnico`, 401));
     }
 
@@ -174,7 +174,7 @@ exports.getTechniciansByShop = asyncHandler(async (req, res, next) => {
         return next(new ErrorResponse(`No se encontró taller con ID ${req.params.shopId}`, 404));
     }
 
-    const features = new APIFeatures(Technician.find({ shops: req.params.shopId }).populate('user_id', 'name email').populate('shops', 'name address'), req.query)
+    const features = new APIFeatures(Technician.find({ shops: req.params.shopId }).populate('user', 'name email').populate('shops', 'name address'), req.query) // REFACTOR: populate 'user'
         .filter()
         .sort()
         .limitFields()

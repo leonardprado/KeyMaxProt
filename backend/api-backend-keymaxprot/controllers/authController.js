@@ -206,22 +206,3 @@ exports.desactivarCuenta = asyncHandler(async (req, res, next) => {
     data: {}
   });
 });
-
-
-
-// @desc    Deactivate user account
-// @route   DELETE /api/auth/desactivar
-// @access  Private
-exports.desactivarCuenta = asyncHandler(async (req, res, next) => {
-  await User.findByIdAndUpdate(req.user.id, { active: false });
-
-  res.cookie('token', 'none', {
-    expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true,
-  });
-
-  res.status(200).json({
-    success: true,
-    data: {}
-  });
-});

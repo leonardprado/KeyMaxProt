@@ -19,7 +19,7 @@ const Appointments = () => {
       if (user) {
         setLoading(true);
         try {
-          const appointments = await getUserAppointments(user.id);
+          const appointments = await getUserAppointments(user);
           setUserAppointments(appointments);
         } catch (error) {
           console.error('Error fetching user appointments:', error);
