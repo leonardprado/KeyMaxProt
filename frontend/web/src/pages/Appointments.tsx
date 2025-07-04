@@ -36,8 +36,8 @@ const Appointments = () => {
     fetchAppointments();
   }, [user, getUserAppointments]);
 
-  const getServiceDetails = (serviceId: string) => {
-    return services.find(s => s._id === serviceId);
+  const getServiceDetails = (service: string) => {
+    return services.find(s => s._id === service);
   };
 
   return (
@@ -81,7 +81,7 @@ const Appointments = () => {
         ) : (
           <div className="space-y-4">
             {userAppointments.map(appointment => {
-              const service = getServiceDetails(appointment.serviceId);
+              const service = getServiceDetails(appointment.service);
               return (
                 <Card key={appointment._id} className="bg-card text-card-foreground border-border">
                   <CardHeader>

@@ -3,13 +3,24 @@ import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import ImprovedNavigation from '../components/ImprovedNavigation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { ThumbsUp, Eye, Loader2 } from 'lucide-react';
+import axios from 'axios'; // Importamos axios para la comprobación de errores
 
-import apiClient from '../api/axiosConfig'; // Asegúrate de que este apiClient esté configurado correctamente
+import apiClient from '../api/axiosConfig';
+
+interface Post {
+  _id: string;
+  title?: string;
+  author?: {
+    name?: string;
+  };
+  // Usamos un tipo más específico. Asumimos que es un array de IDs (strings).
+  likes?: string[];
+  views?: number;
+}
 
 const Blog = () => {
-  const [posts, setPosts] = useState<any[]>([]); // Inicializado como array vacío
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -20,12 +31,21 @@ const Blog = () => {
       setError(null);
       try {
         const res = await apiClient.get('/posts');
-        // CORRECCIÓN CRÍTICA: Asegurarse de que `posts` sea siempre un array.
-        // Si `res.data.data` no existe o no es un array, se usará un array vacío [].
+        // Asegurarse de que `posts` sea siempre un array.
         setPosts(Array.isArray(res.data.data) ? res.data.data : []);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching posts:', err);
-        const errorMessage = err.response?.data?.error || err.message || 'Error al cargar las publicaciones del blog.';
+        let errorMessage = 'Error al cargar las publicaciones del blog.';
+        
+        // Comprobamos si es un error de Axios de forma segura
+        if (axios.isAxiosError(err)) {
+          // Si es un error de Axios, podemos acceder a `response` de forma segura
+          errorMessage = err.response?.data?.message || err.response?.data?.error || err.message;
+        } else if (err instanceof Error) {
+          // Si es un error genérico, solo accedemos a `message`
+          errorMessage = err.message;
+        }
+        
         setError(errorMessage);
         toast({
           title: "Error",
@@ -37,7 +57,7 @@ const Blog = () => {
       }
     };
     fetchPosts();
-  }, [toast]); // Añadir toast a las dependencias del efecto
+  }, [toast]);
 
   return (
     <div>
@@ -54,36 +74,35 @@ const Blog = () => {
             <p>{error}</p>
           </div>
         ) : posts.length > 0 ? (
-          // RENDERIZADO SEGURO: Solo se ejecuta si `posts` es un array con elementos.
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {posts.map(post => (
-                <Link to={`/post/${post._id}`} key={post._id}>
-                  <Card className="hover:shadow-lg transition-shadow duration-300">
-                    <CardHeader>
-                      <CardTitle>{post.title || 'Sin Título'}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {/* RENDERIZADO CONDICIONAL SEGURO: Usa optional chaining (?.) y fallback */}
-                      <p className="text-gray-500">by {post.author?.name || 'Autor desconocido'}</p>
-                    </CardContent>
-                    <CardFooter className="flex justify-between">
-                      <div className="flex items-center space-x-2">
-                        <ThumbsUp className="w-5 h-5" />
-                        <span>{post.likes?.length || 0}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Eye className="w-5 h-5" />
-                        <span>{post.views || 0}</span>
-                      </div>
-                    </CardFooter>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-gray-600 h-64 flex justify-center items-center">
-              <p>No hay publicaciones en el blog en este momento.</p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {posts.map(post => (
+              <Link to={`/post/${post._id}`} key={post._id}>
+                <Card className="hover:shadow-lg transition-shadow duration-300">
+                  <CardHeader>
+                    <CardTitle>{post.title || 'Sin Título'}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-500">by {post.author?.name || 'Autor desconocido'}</p>
+                  </CardContent>
+                  <CardFooter className="flex justify-between">
+                    <div className="flex items-center space-x-2">
+                      <ThumbsUp className="w-5 h-5" />
+                      <span>{post.likes?.length || 0}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Eye className="w-5 h-5" />
+                      <span>{post.views || 0}</span>
+                    </div>
+                  </CardFooter>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-gray-600 h-64 flex justify-center items-center">
+            <p>No hay publicaciones en el blog en este momento.</p>
+          </div>
+        )}
       </div>
     </div>
   );

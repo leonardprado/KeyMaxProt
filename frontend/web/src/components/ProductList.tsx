@@ -1,63 +1,32 @@
-// ProductList.tsx (Refactorizado)
+// ProductList.tsx (Refactorizado con useProducts, paginación y filtros)
 
 import React, { useState, useEffect } from 'react';
-import apiClient from '../api/axiosConfig'; // O la ruta correcta a tu apiClient
-import { Spin } from 'antd'; // O tu componente de UI preferido
-import { useToast } from '@/hooks/use-toast';
-import ProductCard from './ProductCard'; // Tu componente para mostrar un producto
+import { Spin } from 'antd';
+import ProductCard from './ProductCard';
+import { useProducts } from '@/hooks/use-products';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input'; // Importa Input
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Importa Select
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useFetch } from '@/hooks/use-fetch'; // Importa useFetch para categorías
 
 const ProductList = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1); // Estado para la página actual
-  const [productsPerPage] = useState(9); // Número de productos por página
-  const [totalProducts, setTotalProducts] = useState(0); // Estado para el total de productos
-  const { toast } = useToast();
-  // Puedes añadir más estados aquí para los filtros, por ejemplo:
-  // const [filters, setFilters] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+
+  const { products, loading, error, currentPage, totalPages, setPage, setFilters } = useProducts({ limit: 9 });
+  const { data: categories, loading: categoriesLoading, error: categoriesError } = useFetch<string[]>('/products/categories', []);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Añade los parámetros de query a la llamada de la API
-        const response = await apiClient.get('/products', {
-          params: {
-            page: currentPage,
-            limit: productsPerPage,
-            // Añade aquí los parámetros de filtro si los implementas:
-            // ...filters,
-          },
-        });
-        setProducts(response.data.data);
-        setTotalProducts(response.data.totalDocs || 0);
-        toast({
-          title: 'Éxito',
-          description: 'Productos cargados correctamente.',
-          variant: 'default',
-        });
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.message || 'No se pudieron cargar los productos.';
-        setError(errorMessage);
-        toast({
-          title: 'Error',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-    // Añade currentPage y filters (si se implementan) como dependencias para que se recargue al cambiar
-  }, [currentPage, toast]); // <-- Se ejecuta cada vez que cambia la página actual
-
-  // Lógica de paginación (necesitarás un componente de paginación en el JSX)
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+    const newFilters: Record<string, any> = {};
+    if (searchTerm) {
+      newFilters.name = searchTerm; // Asumiendo que el backend filtra por 'name'
+    }
+    if (selectedCategory) {
+      newFilters.category = selectedCategory;
+    }
+    setFilters(newFilters);
+  }, [searchTerm, selectedCategory, setFilters]);
 
   if (loading) {
     return (
@@ -77,25 +46,65 @@ const ProductList = () => {
 
   return (
     <>
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <Input
+          type="text"
+          placeholder="Buscar productos..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1"
+        />
+        <Select onValueChange={setSelectedCategory} value={selectedCategory}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Seleccionar Categoría" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todas las Categorías</SelectItem>
+            {categoriesLoading ? (
+              <SelectItem value="" disabled>Cargando categorías...</SelectItem>
+            ) : categoriesError ? (
+              <SelectItem value="" disabled>Error al cargar categorías</SelectItem>
+            ) : (
+              categories?.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {products.map((product) => (
           <ProductCard key={product._id} product={product} />
         ))}
       </div>
 
-      {/* Aquí iría tu componente de paginación */}
-      {/* Por ejemplo, usando Ant Design Pagination */}
-      {/*
-      <Pagination
-        current={currentPage}
-        pageSize={productsPerPage}
-        total={totalProducts}
-        onChange={paginate}
-        className="mt-6 text-center"
-      />
-      */}
-
-      {/* Aquí irían los controles de filtro si los implementas */}
+      {/* Componente de Paginación */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-8">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium">
+            Página {currentPage} de {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </>
   );
 };

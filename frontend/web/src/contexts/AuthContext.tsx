@@ -4,24 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import { useToast } from '@/hooks/use-toast';
 
-export interface User {
-  id: string;
-  email: string;
-  profile: {
-    name?: string;
-    lastName?: string;
-    address?: string;
-    phone?: string;
-    avatar?: string;
-  };
-  role: 'user' | 'admin' | 'tecnico' | 'shop_owner' | 'superadmin';
-  createdAt: Date;
-  preferences?: {
-    notifications: boolean;
-    marketing: boolean;
-  };
-  token?: string; // Add token to User interface
-}
+import { User } from '../types';
 
 interface AuthContextType {
   user: User | null;

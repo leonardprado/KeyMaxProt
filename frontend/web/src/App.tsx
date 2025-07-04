@@ -1,95 +1,99 @@
 // src/App.tsx (VERSIÓN FINAL Y COMPLETA)
 
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 // Layouts
 import MainLayout from './components/layout/MainLayout';
-import AdminLayout from './layouts/AdminLayout'; // Importa el layout de administrador
+import AdminLayout from './layouts/AdminLayout';
 
-// Páginas Públicas
-import Index from './pages/Index';
-import Marketplace from './pages/Marketplace';
-import Blog from './pages/Blog';
-import PostPage from './pages/PostPage';
-import AboutPage from './pages/AboutPage';
-import ServicesPage from './pages/ServicesPage';
-import ContactPage from './pages/ContactPage';
-import FAQPage from './pages/FAQPage';
-import ProductDetail from './pages/ProductDetail';
-import ServiceDetail from './pages/ServiceDetail'; // Importa ServiceDetail
-import SearchResultsPage from './pages/SearchResultsPage';
-import ShopDetail from './pages/ShopDetail'; // Importa ShopDetail
+// Páginas Públicas (Lazy Loaded)
+import { lazyLoad } from './utils/lazyLoad';
 
-// Páginas de Autenticación y Perfil (sin el MainLayout)
-import AuthPage from './pages/AuthPage';
-import Profile from './pages/Profile'; // Asumiendo que Profile tiene su propio layout/nav
 
-// Páginas del Dashboard
-import AdminDashboard from './pages/AdminDashboard';
-import OverviewPage from './pages/dashboard/OverviewPage';
-import ProductListPage from './pages/dashboard/products/ProductListPage';
-import ServiceListPage from './pages/dashboard/services/ServiceListPage';
-import ShopListPage from './pages/dashboard/ShopListPage';
-import UserListPage from './pages/dashboard/UserListPage';
-import ServiceCreatePage from './pages/dashboard/services/ServiceCreatePage';
-import ProductCreatePage from './pages/dashboard/products/ProductCreatePage';
-import SalesChart from './pages/dashboard/SalesChart';
-import CategoryChart from './pages/dashboard/CategoryChart';
-import UserRoleChart from './pages/dashboard/UserRoleChart';
+// Páginas Públicas (Lazy Loaded)
+const Index = lazyLoad('pages/Index');
+const Marketplace = lazyLoad('pages/Marketplace');
+const Blog = lazyLoad('pages/Blog');
+const PostPage = lazyLoad('pages/PostPage');
+const AboutPage = lazyLoad('pages/AboutPage');
+const ServicesPage = lazyLoad('pages/ServicesPage');
+const ContactPage = lazyLoad('pages/ContactPage');
+const FAQPage = lazyLoad('pages/FAQPage');
+const ProductDetail = lazyLoad('pages/ProductDetail');
+const ServiceDetail = lazyLoad('pages/ServiceDetail');
+const SearchResultsPage = lazyLoad('pages/SearchResultsPage');
+const ShopDetail = lazyLoad('pages/ShopDetail');
 
-// ¡NUEVA RUTA AÑADIDA AQUÍ!
-import Appointments from './pages/Appointments'; // <-- Importa tu componente de citas
-import AppointmentPage from './pages/AppointmentPage';
-// Otros
-import ProtectedRoute from './components/ProtectedRoute';
-import NotFound from './pages/NotFound';
+// Páginas de Autenticación y Perfil (Lazy Loaded)
+const AuthPage = lazyLoad('pages/AuthPage');
+const Profile = lazyLoad('pages/Profile');
+
+// Páginas del Dashboard (Lazy Loaded)
+const AdminDashboard = lazyLoad('pages/AdminDashboard');
+const OverviewPage = lazyLoad('pages/dashboard/OverviewPage');
+const ProductListPage = lazyLoad('pages/dashboard/products/ProductListPage');
+const ServiceListPage = lazyLoad('pages/dashboard/services/ServiceListPage');
+const ShopListPage = lazyLoad('pages/dashboard/ShopListPage');
+const UserListPage = lazyLoad('pages/dashboard/UserListPage');
+const ServiceCreatePage = lazyLoad('pages/dashboard/services/ServiceCreatePage');
+const ProductCreatePage = lazyLoad('pages/dashboard/products/ProductCreatePage');
+const SalesChart = lazyLoad('pages/dashboard/SalesChart');
+const CategoryChart = lazyLoad('pages/dashboard/CategoryChart');
+const UserRoleChart = lazyLoad('pages/dashboard/UserRoleChart');
+
+// Otras (Lazy Loaded)
+const Appointments = lazyLoad('pages/Appointments');
+const AppointmentPage = lazyLoad('pages/AppointmentPage');
+const ProtectedRoute = lazyLoad('components/ProtectedRoute');
+const NotFound = lazyLoad('pages/NotFound');
 
 function App() {
   return (
-    <Routes>
-      {/* --- Rutas Públicas con Navegación Principal --- */}
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<Index />} />
-        <Route path="/marketplace" element={<Marketplace />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/service/:id" element={<ServiceDetail />} /> {/* Añade la ruta para ServiceDetail */}
-        <Route path="/shop/:id" element={<ShopDetail />} /> {/* Añade la ruta para ShopDetail */}
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/post/:id" element={<PostPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/services" element={<ServicesPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/faq" element={<FAQPage />} />
-        <Route path="/profile" element={<Profile />} />
-        {/* --- Aquí se añade la ruta para las citas del usuario --- */}
-        <Route path="/my-appointments" element={<Appointments />} />
-        <Route path="/book-appointment" element={<AppointmentPage />} /> {/* <-- Agrega la ruta para reservar citas también */}
-        <Route path="/search" element={<SearchResultsPage />} />
-      </Route>
-      
-      {/* --- Rutas del Dashboard de Admin (Protegidas) --- */}
-      <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<OverviewPage />} />
-          <Route path="products" element={<ProductListPage />} />
-          <Route path="services" element={<ServiceListPage />} />
-          <Route path="shops" element={<ShopListPage />} />
-          <Route path="users" element={<UserListPage />} />
-          <Route path="products/create" element={<ProductCreatePage />} />
-          <Route path="services/create" element={<ServiceCreatePage />} />
-          <Route path="sales-chart" element={<SalesChart />} />
-          <Route path="category-chart" element={<CategoryChart />} />
-          <Route path="user-role-chart" element={<UserRoleChart />} />
-          {/* Aquí irían las rutas de creación/edición del dashboard */}
+    <Suspense fallback={<div role="status" aria-live="polite">Cargando...</div>}>
+      <Routes>
+        {/* --- Rutas Públicas con Navegación Principal --- */}
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Index />} />
+          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/service/:id" element={<ServiceDetail />} />
+          <Route path="/shop/:id" element={<ShopDetail />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/post/:id" element={<PostPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/services" element={<ServicesPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/my-appointments" element={<Appointments />} />
+          <Route path="/book-appointment" element={<AppointmentPage />} />
+          <Route path="/search" element={<SearchResultsPage />} />
         </Route>
-      </Route>
+        
+        {/* --- Rutas del Dashboard de Admin (Protegidas) --- */}
+        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<OverviewPage />} />
+            <Route path="products" element={<ProductListPage />} />
+            <Route path="services" element={<ServiceListPage />} />
+            <Route path="shops" element={<ShopListPage />} />
+            <Route path="users" element={<UserListPage />} />
+            <Route path="products/create" element={<ProductCreatePage />} />
+            <Route path="services/create" element={<ServiceCreatePage />} />
+            <Route path="sales-chart" element={<SalesChart />} />
+            <Route path="category-chart" element={<CategoryChart />} />
+            <Route path="user-role-chart" element={<UserRoleChart />} />
+          </Route>
+        </Route>
 
-      {/* --- Rutas que no usan el Layout Principal (como login) --- */}
-      <Route path="/auth" element={<AuthPage />} />
+        {/* --- Rutas que no usan el Layout Principal (como login) --- */}
+        <Route path="/auth" element={<AuthPage />} />
 
-      {/* --- Ruta para Página no Encontrada --- */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        {/* --- Ruta para Página no Encontrada --- */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }
 

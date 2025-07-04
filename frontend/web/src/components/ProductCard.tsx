@@ -1,7 +1,9 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-const ProductCard = ({ product }) => {
+import { Product } from '../types'; // Importa la interfaz Product
+
+const ProductCard = ({ product }: { product: Product }) => {
   const imageUrl = product.images && product.images.length > 0 ? product.images[0] : './public/placeholder.svg';
 
   return (
