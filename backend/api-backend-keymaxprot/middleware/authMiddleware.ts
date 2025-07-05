@@ -1,80 +1,92 @@
-// middleware/authMiddleware.js (VERSIÓN FINAL Y UNIFICADA)
+// middleware/authMiddleware.ts
 
-const jwt = require('jsonwebtoken');
-const asyncHandler = require('./asyncHandler'); // Usamos asyncHandler para un código más limpio
-const ErrorResponse = require('../utils/errorResponse'); // Usamos nuestra clase de error personalizada
+import jwt from 'jsonwebtoken';
+import asyncHandler from './asyncHandler'; // Asegúrate que asyncHandler esté tipado correctamente
+import ErrorResponse from '../utils/errorResponse'; // Asegúrate que ErrorResponse esté tipado correctamente
 
-// Importamos todos los modelos que podamos necesitar aquí
-const { User, Vehicle, Message } = require('../models/AllModels');
+// --- Importaciones Correctas ---
+// Importa Mongoose y sus tipos necesarios
+import mongoose, { Schema, Document, Model, Types } from 'mongoose'; 
+// Importa los tipos de Express por separado
+import { Request, Response, NextFunction, RequestHandler } from 'express'; 
+// Importa tus modelos y sus interfaces
+import User, { IUser } from '../models/User'; 
+import Vehicle, { IVehicle } from '../models/Vehicle'; 
 
-// Protect routes
-exports.protect = asyncHandler(async (req, res, next) => {
-    let token;
+// --- Definición de la Interfaz `AuthRequest` ---
+// Extiende la Request de Express y añade nuestras propiedades personalizadas.
+interface AuthRequest extends Request {
+    user?: IUser | null; // El usuario autenticado
+    vehicle?: IVehicle;   // El vehículo adjuntado
+    // Si necesitas `req.params` tipado de forma específica, lo harás donde se use (como ya hicimos).
+}
 
+// --- Middleware `protect` ---
+exports.protect = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    let token: string | undefined;
+
+    // `req.headers` es de tipo `IncomingHttpHeaders`. 
+    // Asegúrate de que tus `types` de Express sean correctas para que esto funcione.
+    // Si el error `Property 'authorization' does not exist on type 'Headers'` persiste,
+    // puede requerir una aserción de tipo más explícita para `req.headers`.
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        // Set token from Bearer token in header
         token = req.headers.authorization.split(' ')[1];
-    } 
-    // Set token from cookie (opcional, pero útil si lo usas en el futuro)
-    // else if (req.cookies.token) {
-    //   token = req.cookies.token;
-    // }
-
-    // Make sure token exists
+    }
+    
     if (!token) {
         return next(new ErrorResponse('No autorizado para acceder a esta ruta (sin token)', 401));
     }
 
     try {
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Attach user to the request object
-        req.user = await User.findById(decoded.id).select('-password');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+        const userId = (decoded as { id: string }).id;
+        
+        req.user = await User.findById(userId); 
 
         if (!req.user) {
             return next(new ErrorResponse('Usuario no encontrado, token inválido', 401));
         }
 
-        // Aquí puedes añadir verificaciones adicionales si las necesitas en el futuro
-        // if (!req.user.activo) {
-        //     return next(new ErrorResponse('La cuenta de usuario está desactivada', 401));
-        // }
-
         next();
-    } catch (error) {
+    } catch (error: any) { 
+        console.error('Error en authMiddleware.protect:', error);
         return next(new ErrorResponse('No autorizado, token inválido o expirado', 401));
     }
 });
 
-// Grant access to specific roles
-exports.authorize = (...roles) => {
-    return (req, res, next) => {
-        if (!roles.includes(req.user.role)) { // He cambiado 'rol' a 'role' para que coincida con tu esquema
-            return next(new ErrorResponse(`El rol de usuario '${req.user.role}' no está autorizado para acceder a esta ruta`, 403));
+// --- Middleware `authorize` ---
+export const authorize = (...roles: string[]) => {
+    return (req: AuthRequest, res: Response, next: NextFunction) => {
+        if (!req.user || !roles.includes(req.user.role as string)) {
+            return next(new ErrorResponse(`El rol de usuario '${req.user?.role ?? 'desconocido'}' no está autorizado para acceder a esta ruta`, 403));
         }
         next();
     };
 };
 
-// Middleware para verificar propiedad de vehículo
-exports.checkVehicleOwnership = asyncHandler(async (req, res, next) => {
-    const vehicle = await Vehicle.findById(req.params.id); // Asumo que el ID viene como :id
+// --- Middleware `checkVehicleOwnership` ---
+exports.checkVehicleOwnership = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    // `req.params.id` se accede a través de la extensión de ParamsDictionary.
+    // Si el error persiste aquí, podría ser necesario añadir `ParamsDictionary`
+    // en la interfaz extendida de Request, o hacer una aserción más explícita.
+    const vehicleId = (req.params as { id: string }).id; // Aserción de tipo para `id`
+    
+    const vehicle = await Vehicle.findById(vehicleId);
 
     if (!vehicle) {
-        return next(new ErrorResponse(`Vehículo no encontrado con id ${req.params.id}`, 404));
+        return next(new ErrorResponse(`Vehículo no encontrado con id ${vehicleId}`, 404));
     }
 
-    // Encontrar el 'owner' en el array de ownership
-    const ownerInfo = vehicle.ownership.find(o => o.role === 'owner');
+    // `vehicle.ownership` debe estar tipado correctamente en `IVehicle`.
+    const ownerInfo = vehicle.ownership.find(
+        (o: { user_id: mongoose.Types.ObjectId; role: string }) => o.role === 'owner'
+    );
 
-    // Verificar si el usuario es el propietario
-    if (!ownerInfo || (ownerInfo.user_id.toString() !== req.user.id && req.user.role !== 'admin')) {
+    if (!ownerInfo || (ownerInfo.user_id.toString() !== req.user!.id && req.user!.role !== 'admin')) {
         return next(new ErrorResponse('No autorizado para realizar acciones en este vehículo', 403));
     }
     
-    req.vehicle = vehicle;
+    // `req.vehicle` se asigna correctamente.
+    req.vehicle = vehicle; 
     next();
 });
-
-// Aquí puedes añadir el checkMessageAccess si lo necesitas, siguiendo el mismo patrón

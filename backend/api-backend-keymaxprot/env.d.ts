@@ -5,7 +5,8 @@ declare global {
       NODE_ENV: 'development' | 'production' | 'test';
       PORT?: string;
       JWT_SECRET: string; // Asegúrate de que esto coincida exactamente con tu .env
-      JWT_EXPIRE: string; // Asegúrate de que esto coincida exactamente con tu .env
+      JWT_EXPIRE: string; 
+      GEMINI_API_KEY: string; 
       // ... otras variables de entorno que uses
     }
   }

@@ -1,60 +1,98 @@
-Plan de Desarrollo y Lanzamiento (PDL) para Keymax Prot
-Visión General:
-Descripción del proyecto, su misión y sus objetivos.
-Mercado objetivo y propuesta de valor.
-Fase 1: Preparación Crítica para Producción (Lo que ya hemos cubierto y por confirmar)
-Infraestructura y Despliegue:
-Backend (Node.js, Express, MongoDB): Selección de hosting, configuración de base de datos en producción, variables de entorno seguras.
-Frontend Web (React/Vite): Despliegue en plataforma de hosting, configuración de variables de entorno.
-Frontend Mobile (Flutter): Configuración de builds de producción (Android/iOS), preparación para tiendas.
+Análisis General del Proyecto y Primeras Mejoras
+He revisado la estructura del proyecto y los archivos proporcionados. Aquí tienes un análisis inicial con áreas de mejora y pasos a seguir, centrándonos en la robustez, seguridad y mantenibilidad del backend con TypeScript, y la estructura del frontend.
+I. Backend (Node.js, Express, TypeScript)
+Puntos Fuertes:
+Uso de TypeScript: Excelente para la robustez y mantenibilidad.
+Estructura Clara: Carpetas bien definidas (config, controllers, middleware, models, routes, services, utils, workers). Esto es un gran punto de partida.
+Dependencias Comunes: Uso de express, mongoose, bcryptjs, jsonwebtoken, dotenv, cors, helmet, express-rate-limit. Son pilares sólidos.
+Manejo de Errores: Existe un errorMiddleware (middleware/errorMiddleware.ts) y la clase ErrorResponse, lo cual es fundamental.
+Autenticación/Autorización: Implementación de authMiddleware con protect y authorize.
+Utilidades: APIFeatures es una utilidad útil para la paginación y filtrado.
+Workers: Presencia de maintenanceNotifier.ts muestra un pensamiento proactivo para tareas asíncronas.
+Integraciones: Firebase Admin, OpenAI, Mercado Pago están presentes, lo que indica una aplicación con potencial.
+Documentación: Uso de Swagger (swaggerConfig.ts) para la documentación de la API.
+Áreas de Mejora y Brechas Potenciales (Preliminares):
 Seguridad:
-Gestión de secretos (claves API, JWT).
-Protección de rutas (middlewares).
-Validación y sanitización de entradas.
-HTTPS y otras medidas de seguridad web.
-Pagos:
-Integración completa y probada de Mercado Pago (checkout, webhooks, manejo de estados).
-Autenticación y Usuarios:
-Flujos de registro, login, recuperación de contraseña.
-Gestión de roles y permisos.
-Fase 2: Refinamiento y Consolidación de Funcionalidades Principales
-Backend:
-Consistencia y Refactorización: Uniformidad de nombres, rutas, manejo de errores.
-Testing: Implementación de pruebas unitarias, de integración.
-Optimización de Consultas: Índices de BD, optimización de APIs críticas.
-Funcionalidades Faltantes: Completar endpoints (PUT, DELETE) para todas las entidades.
-Frontend (Web):
-Navegación y UX: Mejorar la experiencia de usuario en todos los flujos (reservas, checkout, perfil).
-Componentes UI: Consistencia en el uso de librerías (shadcn/ui, antd).
-Manejo de Estado: Robustecer los contextos y la gestión de datos.
-Páginas Detalle: Implementar las páginas de detalle de Servicios y Tiendas.
-Dashboard Admin: Completar las secciones faltantes.
-Frontend (Mobile):
-Implementar la lógica para cargar URLs de API de producción.
-Diseño y funcionalidades específicas de mobile.
-Fase 3: Integración de IA y Mejoras Avanzadas
-Backend:
-Integración IA (Gemini/OpenAI):
-Configurar servicio para IA.
-Crear controladores y endpoints para interactuar con la IA.
-Implementar manejo de historial de conversación.
-Asegurar que las claves de IA sean manejadas de forma segura.
-Notificaciones:
-Integrar servicio de email (ej. SendGrid, Resend) para confirmaciones de cita, etc.
-Refinar worker de mantenimiento.
-WebSockets: Para chat en tiempo real y notificaciones push en el dashboard.
-Frontend:
-Interfaz IA: Desarrollar la UI para interactuar con el agente IA.
-Mejoras de UI/UX: Refinar animaciones, transiciones, feedback visual.
-PWA (Progressive Web App) para Web: Considerar la opción de convertir tu web app en una PWA para mejor experiencia offline y "instalación" en escritorio/móvil.
-Analytics: Integrar herramientas como Google Analytics o similar para entender el comportamiento del usuario.
-Fase 4: Lanzamiento y Mantenimiento
-Pruebas End-to-End: Realizar pruebas completas de todos los flujos críticos.
-Beta Testing: Invitar a un grupo cerrado de usuarios para obtener feedback.
-Lanzamiento Oficial: Publicar en tiendas (mobile) y desplegar la versión final (web).
-Monitoreo: Configurar herramientas de monitoreo (ej. Sentry, LogRocket) para detectar errores en producción.
-Mantenimiento Continuo: Actualizaciones de dependencias, corrección de bugs, iteración basada en feedback de usuarios.
-
+Validación de Entrada Robusta: Aunque hay helmet y rateLimit, la validación específica de datos de entrada en los controllers (ej. authController.ts tiene algo de sanitización, pero se puede centralizar mejor) es crucial. Librerías como class-validator o express-validator son excelentes para esto.
+Manejo de Secretos: El .env y las variables de entorno son correctos. La definición en env.d.ts es un buen paso. Asegurarse de que JWT_SECRET y JWT_EXPIRE sean fuertes y seguros.
+Autorización Detallada: authMiddleware.ts tiene protect y authorize. Sin embargo, se podrían refinar los roles y permisos específicos para cada endpoint de manera más granular (ej. solo el dueño de un taller puede modificarlo, no solo un admin). authzMiddleware.ts es un buen inicio para esto.
+Seguridad en Subidas de Archivos: Si usas Cloudinary, asegurar que los upload presets y las claves de API estén bien configurados y que los tipos de archivo permitidos sean estrictos.
+Inyección de Dependencias / Inyección de Comandos: Si los inputs del usuario se usan en consultas de BD sin sanitización o parametrización adecuada (aunque Mongoose generalmente ayuda con esto), podría haber vulnerabilidades.
+Robustez y Mantenibilidad (TypeScript):
+Consistencia de Tipos: Hay archivos .ts y .js. Para un proyecto TypeScript, todo debería ser .ts para aprovechar al máximo las ventajas del tipado. Si usas require en archivos .ts, asegúrate de que esModuleInterop esté bien configurado en tsconfig.json (lo está) y considera si se puede migrar a import para mayor consistencia.
+Manejo de Errores Estandarizado: El errorMiddleware captura errores generales. Asegurarse de que todos los controllers y servicios lancen ErrorResponse con códigos de estado HTTP apropiados.
+Logging: Implementar un sistema de logging más robusto (ej. Winston, Pino) en lugar de solo console.log para auditoría y depuración en producción.
+Pruebas: No veo carpetas de tests. La estrategia de pruebas (unitarias, integración, E2E) es fundamental para la robustez y el mantenimiento a largo plazo.
+Dependencias: Mantener las dependencias actualizadas para parches de seguridad.
+Configuración: La configuración de database.ts y swaggerConfig.ts parece estándar. firebaseAdmin.ts también.
+Escalabilidad:
+Base de Datos: El uso de índices en Mongoose es clave para el rendimiento a medida que crecen los datos. APIFeatures ayuda, pero optimizar consultas específicas será necesario.
+Arquitectura: La arquitectura actual parece seguir patrones comunes de MVC/MVVM. Considerar arquitecturas más desacopladas como Clean Architecture o Hexagonal si la complejidad aumenta significativamente.
+Microservicios: Si el proyecto crece mucho, la arquitectura actual podría eventualmente beneficiarse de la división en microservicios, pero para empezar, un monolito bien estructurado es ideal.
+Código Específico:
+models/User.ts: El error de jwt.sign que ya hemos identificado.
+controllers/authController.ts: El código de sanitización es bueno, pero podría integrarse mejor con express-validator o class-validator. El método sendTokenResponse es un patrón excelente. La gestión de active: false en desactivarCuenta es un buen enfoque de "borrado suave".
+utils/APIFeatures.ts: La implementación actual parece buena, pero las capacidades de búsqueda ($or, $regex) podrían ser optimizadas con índices de texto completo si las colecciones crecen mucho.
+workers/maintenanceNotifier.ts: La lógica para calcular nextMaintenanceMileage necesita ser revisada. El modelo MaintenancePlan no tiene un campo mileage_intervals (parece ser un array de números), pero el código intenta iterar sobre él como si tuviera mileage_start y mileage_end. Esto necesita una corrección en el modelo o en la lógica del worker.
+II. Frontend (React/Vite)
+Puntos Fuertes:
+Tecnologías Modernas: React, Vite, Tailwind CSS, Shadcn/UI, React Router, RTK Query (aparentemente, por el uso de apiClient y la estructura de useFetch).
+Estructura Clara: Carpetas bien definidas (api, components, contexts, hooks, pages, types, utils).
+Gestión de Estado: Uso de Context API (AuthContext, CartContext, NotificationContext, FavoritesContext, AppointmentContext) es una buena práctica.
+Componentes UI: Integración de Shadcn/UI (y aparentemente Ant Design en algunos casos) para componentes de UI consistentes.
+Rutas: Uso de react-router-dom para la navegación. La idea de ProtectedRoute es excelente.
+Llamadas API: axiosConfig.ts con interceptores es una práctica estándar y segura.
+Lazy Loading: Uso de lazyLoad para optimizar el rendimiento.
+Áreas de Mejora y Brechas Potenciales (Preliminares):
+Manejo de Estado:
+Consistencia: Se ve que se usan tanto useState como useReducer (implícito en useToast y useFetch). Mantener la consistencia o considerar una librería de gestión de estado más robusta como Zustand o Redux Toolkit si la aplicación crece mucho en complejidad.
+Aislamiento de Lógica: hooks/use-fetch.ts es un buen ejemplo de abstracción. Se puede expandir para otros hooks reutilizables.
+Seguridad (Frontend):
+Gestión de Tokens: El token se guarda en localStorage. Para mayor seguridad, especialmente en aplicaciones más sensibles, se podría considerar sessionStorage o cookies HTTPOnly (aunque estas últimas son más para el backend). La forma actual es común, pero hay que ser consciente de las implicaciones de XSS.
+Validación del Lado del Cliente: Toda validación del lado del servidor debe tener su contraparte en el cliente para una mejor UX, pero nunca debe ser la única defensa. El uso de react-hook-form y zod (visto en package.json) es excelente para esto.
+Exposición de Claves API: El env.json en frontend/mobile y el vite.config.ts en web sugieren que las claves API (como la de OpenAI) podrían ser expuestas. Es vital que las claves secretas (como OPENAI_API_KEY) nunca se incluyan en el código frontend desplegado. Deben ser manejadas exclusivamente por el backend. Si el frontend necesita interactuar con servicios externos de IA de forma directa, se debería usar una solución proxy a través del backend.
+Rendimiento y Optimización:
+Code Splitting: El lazy loading está bien implementado.
+Optimización de Imágenes: Las imágenes de los productos y los placeholders deben ser optimizadas para la web.
+Paginación y Filtros: El hook useProducts parece estar manejando esto, pero hay que asegurarse de que las llamadas al backend sean eficientes y que los filtros se apliquen correctamente del lado del servidor.
+Código Específico:
+pages/ProductDetail.tsx y pages/ShopDetail.tsx: Parecen ser componentes de placeholder; necesitarán una implementación más completa consumiendo las APIs que ya tienes.
+pages/Appointments.tsx: La lógica de useEffect para obtener las citas del usuario debería usar el user del AuthContext de forma más directa y asegurar que getUserAppointments tome el ID de usuario del contexto si es necesario, o que el backend reconozca al usuario autenticado.
+components/ImprovedNavigation.tsx: La navegación tiene mucha lógica para el estado de autenticación y roles. Es buena, pero hay que verificar la gestión del estado authLoading para una experiencia de usuario fluida.
+Lista de Pasos a Seguir (Propuesta Inicial)
+Vamos a ir paso a paso, abordando primero lo más crítico.
+Prioridad 1: Solución del Error de TypeScript y Asegurar el Backend
+Resolver el error de jwt.sign en models/User.ts:
+Acción: Proporcióname el fragmento de código y la fuente de secret. Aplicaremos la corrección propuesta.
+Objetivo: Que la aplicación compile y el JWT se genere correctamente.
+Centralizar y Reforzar la Validación de Entrada en el Backend:
+Acción: Evaluar el uso de class-validator (si usas class-transformer) o express-validator para validar todos los cuerpos de las peticiones en los controllers.
+Objetivo: Prevenir datos maliciosos o malformados antes de que lleguen a la lógica de negocio o la base de datos.
+Implementar Logging Robusto en el Backend:
+Acción: Integrar una librería como Winston o Pino. Configurar niveles de log según el entorno (debug en desarrollo, info/error en producción).
+Objetivo: Facilitar la depuración y el monitoreo en producción.
+Completar la Implementación de PUT y DELETE para Productos/Servicios/Talleres:
+Acción: Revisar los controllers y routes para asegurar que todos los endpoints CRUD estén completos y correctamente protegidos.
+Objetivo: Tener un API RESTful completo para las entidades principales.
+Refactorizar el Worker maintenanceNotifier.ts:
+Acción: Corregir la lógica para leer mileage_intervals y common_issues según la estructura del modelo MaintenancePlan.
+Objetivo: Asegurar que el worker funcione como se espera.
+Revisar la Integración de OpenAI y Claves API:
+Acción: Asegurarse de que OPENAI_API_KEY solo se lea desde el .env y nunca se exponga al frontend. Si el frontend llama directamente a OpenAI, hay que detener eso y redirigir las llamadas a través del backend.
+Objetivo: Proteger las credenciales de servicios externos.
+Prioridad 2: Fortalecer el Frontend y la Integración
+Seguridad en Frontend: Claves API:
+Acción: Revisar frontend/web/src/api/axiosConfig.ts y cómo se manejan las claves de API (ej. OPENAI_API_KEY del env.json). Las claves secretas deben ser manejadas solo en el backend.
+Objetivo: Evitar la exposición de información sensible en el código del cliente.
+Consistencia de Tipos y Estructura de Datos Frontend:
+Acción: Usar la interfaz Product de types/index.d.ts y types/product.ts de manera consistente en todos los componentes del frontend que manejen productos. Asegurarse de que los IDs sean siempre string (_id de MongoDB).
+Objetivo: Mejorar la robustez y evitar errores de tipo.
+Validaciones de Formulario en Frontend:
+Acción: Asegurarse de que react-hook-form y zod se utilicen para todas las validaciones de formularios (registro, login, reserva, perfil, etc.) para una mejor experiencia de usuario.
+Objetivo: Proporcionar feedback inmediato al usuario y reducir errores de entrada.
+Implementar Testing en Backend:
+Acción: Crear una estructura de carpetas para pruebas (tests/). Empezar con pruebas unitarias para servicios críticos (ej. authService, aiService) y pruebas de integración para algunos endpoints clave.
+Objetivo: Construir una base de confianza para futuros cambios y refactorizaciones.
 
 
 Plan de Desarrollo y Lanzamiento (PDL) para Keymax Prot - Enfocado en MVP

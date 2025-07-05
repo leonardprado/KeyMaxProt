@@ -1,25 +1,29 @@
-// backend/api-backend-keymaxprot/controllers/aiController.js
-const asyncHandler = require('../middleware/asyncHandler');
-const { getAiResponse } = require('../services/aiService'); // Importa tu servicio de IA
+// controllers/aiController.ts 
+import { Request, Response, NextFunction } from 'express';
+import asyncHandler from '../middleware/asyncHandler';
+import ErrorResponse from '../utils/errorResponse';
+import { getGeminiResponse } from '../services/geminiService'; 
 
-exports.askAiAgent = asyncHandler(async (req, res, next) => {
-    const { prompt } = req.body;
+// ... (resto de las importaciones) ...
 
-    if (!prompt) {
-        return next(new ErrorResponse('No se proporcionó una consulta (prompt).', 400));
-    }
+exports.askAiAgent = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const { prompt } = req.body as { prompt: string };
 
-    try {
-        // Aquí podrías pasar el historial de conversación si lo gestionas
-        const aiResponse = await getAiResponse(prompt); 
-        
-        res.status(200).json({
-            success: true,
-            response: aiResponse
-        });
-    } catch (error) {
-        // El error ya se maneja en aiService, pero podrías añadir logs aquí
-        console.error('Error en el endpoint de IA:', error);
-        next(error); // Pasa el error al middleware de errores general
-    }
+  if (!prompt) {
+    return next(new ErrorResponse('No se proporcionó una consulta (prompt).', 400));
+  }
+
+  try {
+    // --- Llamada corregida ---
+    const aiResponse = await getGeminiResponse(prompt); 
+    
+    res.status(200).json({
+      success: true,
+      response: aiResponse
+    });
+  } catch (error: any) { // Tipamos el error aquí también para consistencia
+    console.error('Error en el endpoint de IA:', error);
+    // Pasamos el error (que ahora puede ser un Error tipado) al middleware
+    next(error); 
+  }
 });
