@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 import User, { IUser } from './User';
 import Vehicle, { IVehicle } from './Vehicle';
 import ServiceRecord, { IServiceRecord } from './ServiceRecord';
