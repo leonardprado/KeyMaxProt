@@ -10,14 +10,14 @@ import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 // Importa los tipos de Express por separado
 import { Request, Response, NextFunction, RequestHandler } from 'express'; 
 // Importa tus modelos y sus interfaces
-import User, { IUser } from '../models/User'; 
+import User, { IUserDocument } from '../models/User';
 import Vehicle, { IVehicle } from '../models/Vehicle'; 
 
 // --- Definición de la Interfaz `AuthRequest` ---
 // Extiende la Request de Express y añade nuestras propiedades personalizadas.
 interface AuthRequest extends Request {
-    user?: IUser | null; // El usuario autenticado
-    vehicle?: IVehicle;   // El vehículo adjuntado
+    user?: IUserDocument | null;
+    vehicle?: IVehicle;  // El vehículo adjuntado
     // Si necesitas `req.params` tipado de forma específica, lo harás donde se use (como ya hicimos).
 }
 
@@ -40,15 +40,15 @@ exports.protect = asyncHandler(async (req: AuthRequest, res: Response, next: Nex
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET!);
         const userId = (decoded as { id: string }).id;
-        
-        req.user = await User.findById(userId); 
-
+    
+        req.user = await User.findById(userId); // ⬅️ ¡Usá el modelo, no la interfaz!
+    
         if (!req.user) {
             return next(new ErrorResponse('Usuario no encontrado, token inválido', 401));
         }
-
+    
         next();
-    } catch (error: any) { 
+    } catch (error: any) {
         console.error('Error en authMiddleware.protect:', error);
         return next(new ErrorResponse('No autorizado, token inválido o expirado', 401));
     }
@@ -82,7 +82,8 @@ exports.checkVehicleOwnership = asyncHandler(async (req: AuthRequest, res: Respo
         (o: { user_id: mongoose.Types.ObjectId; role: string }) => o.role === 'owner'
     );
 
-    if (!ownerInfo || (ownerInfo.user_id.toString() !== req.user!.id && req.user!.role !== 'admin')) {
+    if (!ownerInfo || (ownerInfo.user_id.toString() !== req.user!._id.toString() && req.user!.role !== 'admin')) {
+
         return next(new ErrorResponse('No autorizado para realizar acciones en este vehículo', 403));
     }
     
